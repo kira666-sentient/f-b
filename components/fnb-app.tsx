@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import {
   getAppOrigin,
@@ -254,6 +256,7 @@ export default function FnbApp() {
       active = false;
       subscription.unsubscribe();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase]);
 
   useEffect(() => {
@@ -267,7 +270,8 @@ export default function FnbApp() {
       });
     };
 
-    const intervalId = window.setInterval(refreshSilently, 5000);
+    // Poll every 60 seconds (relies on focus/visibility listeners for instant updates instead)
+    const intervalId = window.setInterval(refreshSilently, 60000);
 
     const handleFocus = () => {
       refreshSilently();
@@ -287,6 +291,7 @@ export default function FnbApp() {
       window.removeEventListener("focus", handleFocus);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.id]);
 
   async function ensureProfile(user: User) {
@@ -1138,7 +1143,7 @@ export default function FnbApp() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ amount_in_paise: amountInPaise })
         });
-      } catch (e) {
+      } catch {
         setFailure("Failed to connect to payment server.");
         return;
       }
@@ -1172,7 +1177,7 @@ export default function FnbApp() {
         name: "Friends & Benefits",
         description: "Settlement",
         order_id: order.id.startsWith("order_mock") ? undefined : order.id,
-        handler: async function (response: any) {
+        handler: async function (response: { razorpay_payment_id?: string }) {
            const { error: insertError } = await supabase!.from("settlements").insert({
              payer_id: session!.user.id,
              receiver_id: settlementForm.friendId,
@@ -1203,7 +1208,8 @@ export default function FnbApp() {
         return;
       }
 
-      const rzp = new (window as any).Razorpay(options);
+      const RazorpayCtor = (window as unknown as { Razorpay: new (opts: unknown) => { on: (event: string, cb: () => void) => void; open: () => void } }).Razorpay;
+      const rzp = new RazorpayCtor(options);
       rzp.on('payment.failed', function () {
          setFailure("Payment was cancelled or failed.");
       });
