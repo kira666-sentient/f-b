@@ -24,10 +24,22 @@ type ActivityItem = {
   id: string;
   kind: "debt" | "settlement";
   createdAt: string;
+  profile: Profile | null;
   label: string;
   detail: string;
   status: string;
   amountInPaise: number;
+};
+
+type StatementEntry = {
+  id: string;
+  createdAt: string;
+  kind: "debt" | "settlement";
+  title: string;
+  detail: string;
+  status: string;
+  amountInPaise: number;
+  balanceDeltaInPaise: number;
 };
 
 type DashboardData = {
@@ -86,6 +98,17 @@ function readableProfile(profile?: Profile | null) {
   return profile?.full_name || profile?.username || "Friend";
 }
 
+function initialsFor(profile?: Profile | null) {
+  const source = readableProfile(profile).trim();
+  const parts = source.split(/\s+/).filter(Boolean).slice(0, 2);
+
+  if (parts.length === 0) {
+    return "FB";
+  }
+
+  return parts.map((part) => part[0]?.toUpperCase() ?? "").join("");
+}
+
 function getErrorMessage(cause: unknown) {
   if (typeof cause === "string") {
     return cause;
@@ -132,6 +155,13 @@ export default function FnbApp() {
     amount: "",
     note: ""
   });
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  const [selectedFriendId, setSelectedFriendId] = useState("");
+
+  function openProfileDialog() {
+    setUsernameDraft(dashboard.profile?.username ?? "");
+    setIsProfileDialogOpen(true);
+  }
 
   useEffect(() => {
     const client = supabase;
@@ -207,6 +237,39 @@ export default function FnbApp() {
     };
   }, [supabase]);
 
+  useEffect(() => {
+    if (!session?.user) {
+      return;
+    }
+
+    const refreshSilently = () => {
+      void loadDashboard(session.user.id, { silent: true }).catch((cause: unknown) => {
+        setError(getErrorMessage(cause));
+      });
+    };
+
+    const intervalId = window.setInterval(refreshSilently, 5000);
+
+    const handleFocus = () => {
+      refreshSilently();
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        refreshSilently();
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [session?.user?.id]);
+
   async function ensureProfile(user: User) {
     const client = supabase;
 
@@ -255,14 +318,18 @@ export default function FnbApp() {
     }
   }
 
-  async function loadDashboard(userId: string) {
+  async function loadDashboard(userId: string, options?: { silent?: boolean }) {
     const client = supabase;
 
     if (!client) {
       return;
     }
 
-    setRefreshing(true);
+    const silent = options?.silent ?? false;
+
+    if (!silent) {
+      setRefreshing(true);
+    }
 
     const [profileResult, friendshipsResult, debtsResult, settlementsResult] =
       await Promise.all([
@@ -295,22 +362,30 @@ export default function FnbApp() {
       ]);
 
     if (profileResult.error) {
-      setRefreshing(false);
+      if (!silent) {
+        setRefreshing(false);
+      }
       throw profileResult.error;
     }
 
     if (friendshipsResult.error) {
-      setRefreshing(false);
+      if (!silent) {
+        setRefreshing(false);
+      }
       throw friendshipsResult.error;
     }
 
     if (debtsResult.error) {
-      setRefreshing(false);
+      if (!silent) {
+        setRefreshing(false);
+      }
       throw debtsResult.error;
     }
 
     if (settlementsResult.error) {
-      setRefreshing(false);
+      if (!silent) {
+        setRefreshing(false);
+      }
       throw settlementsResult.error;
     }
 
@@ -345,7 +420,9 @@ export default function FnbApp() {
         .in("id", ids);
 
       if (profilesResult.error) {
-        setRefreshing(false);
+        if (!silent) {
+          setRefreshing(false);
+        }
         throw profilesResult.error;
       }
 
@@ -359,8 +436,9 @@ export default function FnbApp() {
       debtRequests,
       settlements
     });
-    setUsernameDraft((profileResult.data?.username as string | null) ?? "");
-    setRefreshing(false);
+    if (!silent) {
+      setRefreshing(false);
+    }
   }
 
   async function refreshData() {
@@ -459,6 +537,96 @@ export default function FnbApp() {
     );
   }, [acceptedFriends, dashboard.debtRequests, dashboard.settlements, session?.user]);
 
+  useEffect(() => {
+    if (balances.length === 0) {
+      setSelectedFriendId("");
+      return;
+    }
+
+    const stillExists = balances.some(
+      (friend) => friend.profile.id === selectedFriendId
+    );
+
+    if (!stillExists) {
+      setSelectedFriendId(balances[0].profile.id);
+    }
+  }, [balances, selectedFriendId]);
+
+  const selectedFriend = useMemo(() => {
+    return balances.find((friend) => friend.profile.id === selectedFriendId) ?? null;
+  }, [balances, selectedFriendId]);
+
+  const friendStatement = useMemo<StatementEntry[]>(() => {
+    if (!session?.user || !selectedFriend) {
+      return [];
+    }
+
+    const friendId = selectedFriend.profile.id;
+    const statementFromDebts = dashboard.debtRequests
+      .filter((request) => {
+        const otherId =
+          request.creator_id === session.user.id
+            ? request.approver_id
+            : request.creator_id;
+
+        return otherId === friendId;
+      })
+      .map((request) => ({
+        id: request.id,
+        createdAt: request.created_at,
+        kind: "debt" as const,
+        title:
+          request.creator_id === session.user.id
+            ? `You logged a debt for ${readableProfile(selectedFriend.profile)}`
+            : `${readableProfile(selectedFriend.profile)} logged a debt for you`,
+        detail: request.reason,
+        status: request.status,
+        amountInPaise: request.amount_in_paise,
+        balanceDeltaInPaise:
+          request.status === "approved"
+            ? request.creator_id === session.user.id
+              ? request.amount_in_paise
+              : -request.amount_in_paise
+            : 0
+      }));
+
+    const statementFromSettlements = dashboard.settlements
+      .filter((settlement) => {
+        const otherId =
+          settlement.payer_id === session.user.id
+            ? settlement.receiver_id
+            : settlement.payer_id;
+
+        return otherId === friendId;
+      })
+      .map((settlement) => ({
+        id: settlement.id,
+        createdAt: settlement.settled_at,
+        kind: "settlement" as const,
+        title:
+          settlement.payer_id === session.user.id
+            ? `You paid ${readableProfile(selectedFriend.profile)}`
+            : `${readableProfile(selectedFriend.profile)} paid you`,
+        detail: settlement.note || "Settlement recorded",
+        status: "settled",
+        amountInPaise: settlement.amount_in_paise,
+        balanceDeltaInPaise:
+          settlement.payer_id === session.user.id
+            ? settlement.amount_in_paise
+            : -settlement.amount_in_paise
+      }));
+
+    return [...statementFromDebts, ...statementFromSettlements].sort(
+      (left, right) =>
+        new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
+    );
+  }, [
+    dashboard.debtRequests,
+    dashboard.settlements,
+    selectedFriend,
+    session?.user
+  ]);
+
   const incomingInvites = useMemo(() => {
     if (!session?.user) {
       return [];
@@ -511,6 +679,7 @@ export default function FnbApp() {
         id: request.id,
         kind: "debt" as const,
         createdAt: request.created_at,
+        profile: otherProfile ?? null,
         label:
           request.creator_id === session.user.id
             ? `${otherName} owes you`
@@ -533,6 +702,7 @@ export default function FnbApp() {
         id: settlement.id,
         kind: "settlement" as const,
         createdAt: settlement.settled_at,
+        profile: otherProfile ?? null,
         label:
           settlement.payer_id === session.user.id
             ? `You paid ${otherName}`
@@ -633,6 +803,7 @@ export default function FnbApp() {
       }
 
       setFeedback("Username updated.");
+      setIsProfileDialogOpen(false);
       await refreshData();
     });
   }
@@ -878,6 +1049,19 @@ export default function FnbApp() {
   const profileNeedsSetup =
     !dashboard.profile?.username || dashboard.profile.username.length < 3;
 
+  useEffect(() => {
+    if (profileNeedsSetup) {
+      setUsernameDraft(dashboard.profile?.username ?? "");
+      setIsProfileDialogOpen(true);
+    }
+  }, [dashboard.profile?.username, profileNeedsSetup]);
+
+  useEffect(() => {
+    if (!isProfileDialogOpen) {
+      setUsernameDraft(dashboard.profile?.username ?? "");
+    }
+  }, [dashboard.profile?.username, isProfileDialogOpen]);
+
   if (!envReady) {
     return (
       <main className="shell">
@@ -952,18 +1136,27 @@ export default function FnbApp() {
   return (
     <main className="shell app-shell">
       <section className="topbar">
-        <div>
-          <p className="eyebrow">F&B</p>
-          <h1 className="app-title">Friends and Benefits</h1>
-          <p className="top-copy">
-            Welcome back, {dashboard.profile?.full_name ?? session.user.email}.
-          </p>
-          <p className="top-copy">
-            Your username: @{dashboard.profile?.username ?? "not-set"}
-          </p>
+        <div className="identity-lockup">
+          <Avatar profile={dashboard.profile} size="large" />
+          <div>
+            <p className="eyebrow">F&B</p>
+            <h1 className="app-title">Friends and Benefits</h1>
+            <p className="top-copy">
+              Welcome back, {dashboard.profile?.full_name ?? session.user.email}.
+            </p>
+            <p className="top-copy">
+              Your username: @{dashboard.profile?.username ?? "not-set"}
+            </p>
+          </div>
         </div>
 
         <div className="topbar-actions">
+          <button
+            className="ghost-button"
+            onClick={openProfileDialog}
+          >
+            Edit profile
+          </button>
           <button className="ghost-button" onClick={refreshData} disabled={refreshing}>
             {refreshing ? "Refreshing..." : "Refresh"}
           </button>
@@ -979,33 +1172,64 @@ export default function FnbApp() {
         </section>
       )}
 
-      <section className="panel">
-        <h2>{profileNeedsSetup ? "Finish your profile" : "Your profile"}</h2>
-        <p className="muted">
-          {profileNeedsSetup
-            ? "We generated a starter username, but you should pick one your friends can type easily."
-            : "This is the username your friends should use to invite you. You can change it anytime."}
-        </p>
-        <div className="form-grid compact-grid">
-          <label>
-            <span>Username</span>
-            <input
-              value={usernameDraft}
-              onChange={(event) => setUsernameDraft(event.target.value)}
-              placeholder="for example: kiran_07"
-            />
-          </label>
-        </div>
-        <div className="action-row">
-          <button
-            className="primary-button"
-            onClick={saveUsername}
-            disabled={savingUsername}
+      {isProfileDialogOpen && (
+        <div
+          className="dialog-backdrop"
+          onClick={() => setIsProfileDialogOpen(false)}
+          role="presentation"
+        >
+          <section
+            className="dialog-card"
+            onClick={(event) => event.stopPropagation()}
           >
-            {savingUsername ? "Saving..." : "Save username"}
-          </button>
+            <div className="dialog-head">
+              <div>
+                <h2>{profileNeedsSetup ? "Finish your profile" : "Your profile"}</h2>
+                <p className="muted">
+                  {profileNeedsSetup
+                    ? "We generated a starter username, but you should pick one your friends can type easily."
+                    : "This username is what your friends use to find you. You can change it anytime."}
+                </p>
+              </div>
+              <button
+                className="ghost-button"
+                onClick={() => setIsProfileDialogOpen(false)}
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="dialog-profile">
+              <Avatar profile={dashboard.profile} size="large" />
+              <div>
+                <strong>{readableProfile(dashboard.profile)}</strong>
+                <p className="muted">@{dashboard.profile?.username ?? "not-set"}</p>
+              </div>
+            </div>
+
+            <div className="form-grid compact-grid">
+              <label>
+                <span>Username</span>
+                <input
+                  value={usernameDraft}
+                  onChange={(event) => setUsernameDraft(event.target.value)}
+                  placeholder="for example: kiran_07"
+                />
+              </label>
+            </div>
+
+            <div className="action-row">
+              <button
+                className="primary-button"
+                onClick={saveUsername}
+                disabled={savingUsername}
+              >
+                {savingUsername ? "Saving..." : "Save username"}
+              </button>
+            </div>
+          </section>
         </div>
-      </section>
+      )}
 
       <section className="stat-grid">
         <article className="stat-card">
@@ -1057,6 +1281,38 @@ export default function FnbApp() {
 
           <div className="stack">
             <div>
+              <h3>Your friends</h3>
+              {balances.length === 0 ? (
+                <p className="empty-state">No accepted friends yet.</p>
+              ) : (
+                <div className="stack mini-stack">
+                  {balances.map((friend) => (
+                    <button
+                      className={`friend-card ${
+                        selectedFriendId === friend.profile.id ? "friend-card-active" : ""
+                      }`}
+                      key={friend.friendshipId}
+                      onClick={() => setSelectedFriendId(friend.profile.id)}
+                    >
+                      <PersonIdentity profile={friend.profile} />
+                      <span
+                        className={`amount-badge ${
+                          friend.balanceInPaise > 0
+                            ? "positive"
+                            : friend.balanceInPaise < 0
+                              ? "negative"
+                              : ""
+                        }`}
+                      >
+                        {formatCurrency(friend.balanceInPaise)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
               <h3>Incoming invites</h3>
               {incomingInvites.length === 0 ? (
                 <p className="empty-state">No incoming invites right now.</p>
@@ -1066,10 +1322,7 @@ export default function FnbApp() {
 
                   return (
                     <div className="list-card" key={invite.id}>
-                      <div>
-                        <strong>{readableProfile(friend)}</strong>
-                        <p>@{friend?.username ?? "unknown"}</p>
-                      </div>
+                      <PersonIdentity profile={friend} />
                       <div className="row-actions">
                         <button
                           className="primary-button"
@@ -1102,10 +1355,7 @@ export default function FnbApp() {
 
                   return (
                     <div className="list-card" key={invite.id}>
-                      <div>
-                        <strong>{readableProfile(friend)}</strong>
-                        <p>@{friend?.username ?? "unknown"}</p>
-                      </div>
+                      <PersonIdentity profile={friend} />
                       <span className="pill">Waiting</span>
                     </div>
                   );
@@ -1234,7 +1484,7 @@ export default function FnbApp() {
                 return (
                   <div className="list-card dense" key={request.id}>
                     <div>
-                      <strong>{readableProfile(creator)}</strong>
+                      <PersonIdentity profile={creator} />
                       <p>
                         {formatCurrency(request.amount_in_paise)} for {request.reason}
                       </p>
@@ -1346,8 +1596,10 @@ export default function FnbApp() {
         <article className="panel">
           <div className="section-head">
             <div>
-              <h2>Balances</h2>
-              <p className="muted">Positive means they owe you. Negative means you owe them.</p>
+              <h2>Friend directory</h2>
+              <p className="muted">
+                Click a friend to open their statement. Positive means they owe you.
+              </p>
             </div>
           </div>
 
@@ -1358,23 +1610,29 @@ export default function FnbApp() {
           ) : (
             <div className="stack">
               {balances.map((friend) => (
-                <div className="list-card" key={friend.friendshipId}>
-                  <div>
-                    <strong>{readableProfile(friend.profile)}</strong>
-                    <p>@{friend.profile.username ?? "unknown"}</p>
+                <button
+                  className={`friend-card ${
+                    selectedFriendId === friend.profile.id ? "friend-card-active" : ""
+                  }`}
+                  key={friend.friendshipId}
+                  onClick={() => setSelectedFriendId(friend.profile.id)}
+                >
+                  <PersonIdentity profile={friend.profile} />
+                  <div className="friend-card-side">
+                    <span
+                      className={`amount-badge ${
+                        friend.balanceInPaise > 0
+                          ? "positive"
+                          : friend.balanceInPaise < 0
+                            ? "negative"
+                            : ""
+                      }`}
+                    >
+                      {formatCurrency(friend.balanceInPaise)}
+                    </span>
+                    <small>@{friend.profile.username ?? "unknown"}</small>
                   </div>
-                  <span
-                    className={`amount-badge ${
-                      friend.balanceInPaise > 0
-                        ? "positive"
-                        : friend.balanceInPaise < 0
-                          ? "negative"
-                          : ""
-                    }`}
-                  >
-                    {formatCurrency(friend.balanceInPaise)}
-                  </span>
-                </div>
+                </button>
               ))}
             </div>
           )}
@@ -1383,34 +1641,138 @@ export default function FnbApp() {
         <article className="panel">
           <div className="section-head">
             <div>
-              <h2>Recent activity</h2>
-              <p className="muted">Latest debts and settlements across your network.</p>
+              <h2>Statement</h2>
+              <p className="muted">
+                Full record with {selectedFriend ? readableProfile(selectedFriend.profile) : "your selected friend"}.
+              </p>
             </div>
           </div>
 
-          {recentActivity.length === 0 ? (
-            <p className="empty-state">No activity yet.</p>
+          {!selectedFriend ? (
+            <p className="empty-state">Choose a friend to see the statement.</p>
           ) : (
-            <div className="stack">
-              {recentActivity.map((item) => (
-                <div className="list-card dense" key={`${item.kind}-${item.id}`}>
-                  <div>
-                    <strong>{item.label}</strong>
-                    <p>{item.detail}</p>
-                    <small>{dateTime.format(new Date(item.createdAt))}</small>
-                  </div>
-                  <div className="activity-side">
-                    <span className="amount-badge neutral">
-                      {formatCurrency(item.amountInPaise)}
-                    </span>
-                    <span className={`pill status-${item.status}`}>{item.status}</span>
-                  </div>
+            <div className="statement-shell">
+              <div className="statement-header">
+                <PersonIdentity profile={selectedFriend.profile} />
+                <span
+                  className={`amount-badge ${
+                    selectedFriend.balanceInPaise > 0
+                      ? "positive"
+                      : selectedFriend.balanceInPaise < 0
+                        ? "negative"
+                        : ""
+                  }`}
+                >
+                  {formatCurrency(selectedFriend.balanceInPaise)}
+                </span>
+              </div>
+
+              {friendStatement.length === 0 ? (
+                <p className="empty-state">No records yet with this friend.</p>
+              ) : (
+                <div className="statement-table-wrap">
+                  <table className="statement-table">
+                    <thead>
+                      <tr>
+                        <th>When</th>
+                        <th>Entry</th>
+                        <th>Status</th>
+                        <th>Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {friendStatement.map((entry) => (
+                        <tr key={`${entry.kind}-${entry.id}`}>
+                          <td>{dateTime.format(new Date(entry.createdAt))}</td>
+                          <td>
+                            <strong>{entry.title}</strong>
+                            <p>{entry.detail}</p>
+                          </td>
+                          <td>
+                            <span className={`pill status-${entry.status}`}>
+                              {entry.status}
+                            </span>
+                          </td>
+                          <td>
+                            <div className="statement-amounts">
+                              <strong>{formatCurrency(entry.amountInPaise)}</strong>
+                              <small>
+                                Balance impact {formatCurrency(entry.balanceDeltaInPaise)}
+                              </small>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              ))}
+              )}
             </div>
           )}
         </article>
       </section>
+
+      <section className="panel">
+        <div className="section-head">
+          <div>
+            <h2>Recent activity</h2>
+            <p className="muted">Latest debts and settlements across your network.</p>
+          </div>
+        </div>
+
+        {recentActivity.length === 0 ? (
+          <p className="empty-state">No activity yet.</p>
+        ) : (
+          <div className="stack">
+            {recentActivity.map((item) => (
+              <div className="list-card dense" key={`${item.kind}-${item.id}`}>
+                <div className="person-block">
+                  <PersonIdentity profile={item.profile} />
+                  <strong>{item.label}</strong>
+                  <p>{item.detail}</p>
+                  <small>{dateTime.format(new Date(item.createdAt))}</small>
+                </div>
+                <div className="activity-side">
+                  <span className="amount-badge neutral">
+                    {formatCurrency(item.amountInPaise)}
+                  </span>
+                  <span className={`pill status-${item.status}`}>{item.status}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </main>
+  );
+}
+
+function Avatar({
+  profile,
+  size = "medium"
+}: {
+  profile?: Profile | null;
+  size?: "small" | "medium" | "large";
+}) {
+  return (
+    <div className={`avatar avatar-${size}`}>
+      {profile?.avatar_url ? (
+        <img src={profile.avatar_url} alt={readableProfile(profile)} />
+      ) : (
+        <span>{initialsFor(profile)}</span>
+      )}
+    </div>
+  );
+}
+
+function PersonIdentity({ profile }: { profile?: Profile | null }) {
+  return (
+    <div className="person-identity">
+      <Avatar profile={profile} />
+      <div className="person-copy">
+        <strong>{readableProfile(profile)}</strong>
+        <p>@{profile?.username ?? "unknown"}</p>
+      </div>
+    </div>
   );
 }
