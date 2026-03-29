@@ -197,7 +197,7 @@ h1 {
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
-  row-gap: 12px;
+  row-gap: 10px;
 }
 
 .action-row {
@@ -276,21 +276,26 @@ h1 {
   background: rgba(255, 244, 242, 0.86);
 }
 
-.topbar-primary-button {
-  min-width: 164px;
-  padding-inline: 22px;
-}
-
 .topbar-compact-button {
-  min-height: 44px;
-  padding: 10px 16px;
+  min-height: 42px;
+  padding: 9px 15px;
   border-radius: 18px;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
 }
 
 .refresh-button {
   justify-content: center;
-  min-width: 112px;
+}
+
+.topbar-icon-button {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+  border-radius: 16px;
+}
+
+.topbar-signout-button {
+  padding-inline: 14px;
 }
 
 .button-icon {
@@ -401,38 +406,48 @@ h1 {
   gap: 8px;
 }
 
-.profile-banner {
+.profile-strip {
   display: flex;
   align-items: center;
-  justify-content: center;
-  justify-self: center;
-  gap: 14px;
-  width: fit-content;
-  max-width: 100%;
-  padding: 14px 16px;
-  border-radius: 20px;
-  border: 1px solid rgba(31, 26, 20, 0.08);
-  background: rgba(255, 255, 255, 0.58);
-  box-shadow: 0 14px 30px rgba(73, 45, 28, 0.08);
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: rgba(255, 251, 245, 0.72);
+  box-shadow: var(--shadow);
 }
 
-.profile-banner-copy {
+.profile-strip-identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.profile-strip-copy {
   min-width: 0;
   display: grid;
-  justify-items: center;
-  text-align: center;
+  gap: 2px;
 }
 
-.profile-banner-copy strong {
+.profile-strip-copy strong {
   display: block;
   margin-top: 2px;
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
 
-.profile-banner-copy p {
+.profile-strip-copy p {
   margin: 3px 0 0;
   color: var(--muted);
+}
+
+.profile-strip-button {
+  min-height: 42px;
+  padding: 9px 18px;
+  font-size: 0.94rem;
+  box-shadow: 0 10px 24px rgba(31, 26, 20, 0.12);
 }
 
 .profile-label {
@@ -889,6 +904,11 @@ code {
   .topbar-actions {
     justify-content: flex-start;
   }
+
+  .profile-strip {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
 }
 
 @media (max-width: 640px) {
@@ -923,7 +943,7 @@ code {
   .identity-lockup,
   .person-identity,
   .statement-header,
-  .profile-banner,
+  .profile-strip-identity,
   .picker-value,
   .picker-option {
     align-items: flex-start;
@@ -933,13 +953,18 @@ code {
     width: 100%;
   }
 
-  .profile-banner {
+  .profile-strip {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .profile-strip-button,
+  .topbar-compact-button {
     width: 100%;
   }
 
-  .topbar-primary-button,
-  .topbar-compact-button {
-    width: 100%;
+  .topbar-icon-button {
+    width: 44px;
   }
 
   .activity-side {

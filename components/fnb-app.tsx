@@ -1159,40 +1159,25 @@ export default function FnbApp() {
               <h1 className="app-title">Friends and Benefits</h1>
             </div>
           </div>
-
-          <div className="profile-banner">
-            <Avatar profile={dashboard.profile} size="medium" />
-            <div className="profile-banner-copy">
-              <span className="profile-label">Welcome back</span>
-              <strong>{dashboard.profile?.full_name ?? session.user.email}</strong>
-              <p>@{dashboard.profile?.username ?? "not-set"}</p>
-            </div>
-          </div>
         </div>
 
         <aside className="topbar-rail">
           <div className="topbar-actions">
             <button
-              className="primary-button topbar-primary-button"
-              onClick={openProfileDialog}
-              type="button"
-            >
-              Edit profile
-            </button>
-            <button
               aria-busy={refreshing}
-              className={`ghost-button topbar-compact-button refresh-button ${
+              aria-label={refreshing ? "Refreshing data" : "Refresh data"}
+              className={`ghost-button topbar-icon-button refresh-button ${
                 refreshing ? "button-is-loading" : ""
               }`}
               onClick={refreshData}
               disabled={refreshing}
+              title="Refresh"
               type="button"
             >
               <RefreshIcon />
-              Refresh
             </button>
             <button
-              className="ghost-button danger-ghost-button topbar-compact-button"
+              className="ghost-button danger-ghost-button topbar-compact-button topbar-signout-button"
               onClick={signOut}
               type="button"
             >
@@ -1207,6 +1192,25 @@ export default function FnbApp() {
           <p>{error ?? feedback}</p>
         </section>
       )}
+
+      <section className="profile-strip">
+        <div className="profile-strip-identity">
+          <Avatar profile={dashboard.profile} size="medium" />
+          <div className="profile-strip-copy">
+            <span className="profile-label">Your profile</span>
+            <strong>{dashboard.profile?.full_name ?? session.user.email}</strong>
+            <p>@{dashboard.profile?.username ?? "not-set"}</p>
+          </div>
+        </div>
+
+        <button
+          className="primary-button profile-strip-button"
+          onClick={openProfileDialog}
+          type="button"
+        >
+          Edit profile
+        </button>
+      </section>
 
       {isProfileDialogOpen && (
         <div
