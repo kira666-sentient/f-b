@@ -2042,31 +2042,8 @@ export default function FnbApp() {
               </button>
             </div>
 
-            <div className="action-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "16px", marginBottom: "12px" }}>
-              <button
-                className="primary-button"
-                onClick={() => {
-                  setIsStatementDialogOpen(false);
-                  setSettlementForm(current => ({...current, friendId: selectedFriend.profile.id}));
-                  setIsSettlementDialogOpen(true);
-                }}
-              >
-                💸 Pay them
-              </button>
-              <button
-                className="ghost-button"
-                onClick={() => {
-                  setIsStatementDialogOpen(false);
-                  setDebtForm(current => ({...current, friendId: selectedFriend.profile.id}));
-                  setIsDebtDialogOpen(true);
-                }}
-              >
-                📝 Log expense
-              </button>
-            </div>
-
             <div className="statement-shell">
-              <div className="statement-header">
+              <div className="statement-header" style={{ marginBottom: "16px" }}>
                 <PersonIdentity profile={selectedFriend.profile} />
                 <span
                   className={`amount-badge ${
@@ -2079,6 +2056,29 @@ export default function FnbApp() {
                 >
                   {formatCurrency(selectedFriend.balanceInPaise)}
                 </span>
+              </div>
+
+              <div className="action-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "20px" }}>
+                <button
+                  className="primary-button"
+                  onClick={() => {
+                    setIsStatementDialogOpen(false);
+                    setSettlementForm(current => ({...current, friendId: selectedFriend.profile.id}));
+                    setIsSettlementDialogOpen(true);
+                  }}
+                >
+                  💸 Pay them
+                </button>
+                <button
+                  className="ghost-button"
+                  onClick={() => {
+                    setIsStatementDialogOpen(false);
+                    setDebtForm(current => ({...current, friendId: selectedFriend.profile.id}));
+                    setIsDebtDialogOpen(true);
+                  }}
+                >
+                  📝 Log expense
+                </button>
               </div>
 
               {friendStatement.length === 0 ? (

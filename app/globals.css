@@ -1423,6 +1423,34 @@ textarea {
   margin: 20px 0 18px;
 }
 
+.statement-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  margin-bottom: 20px;
+}
+
+.person-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.person-copy strong {
+  display: block;
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.person-copy p {
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
 code {
   display: inline-block;
   width: fit-content;
