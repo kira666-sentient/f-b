@@ -13,8 +13,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "friends and benefits",
-  description: "Shared debt tracking for friends with approvals and simple balances."
+  title: "Friends & Benefits",
+  description: "Shared debt tracking for friends with approvals and simple balances.",
+  icons: {
+    icon: "/fnb-logo.svg",
+  },
 };
 
 export default function RootLayout({

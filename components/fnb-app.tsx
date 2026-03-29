@@ -1728,10 +1728,10 @@ export default function FnbApp() {
 
           {/* PC: Full identity lockup */}
           <div className="topbar-main desktop-only">
-            <div className="identity-lockup">
-              <img className="brand-logo" src="/fnb-logo.svg" alt="F&B logo" />
+            <div className="identity-lockup" style={{ gap: '12px' }}>
+              <img className="brand-logo" src="/fnb-logo.svg" alt="F&B logo" style={{ height: '40px', width: 'auto' }} />
               <div className="brand-copy">
-                <h1 className="app-title" style={{ margin: 0 }}>Friends and Benefits</h1>
+                <h1 className="app-title" style={{ margin: 0, fontSize: '1.4rem', letterSpacing: '-0.02em' }}>Friends & Benefits</h1>
               </div>
             </div>
           </div>
@@ -2152,7 +2152,7 @@ export default function FnbApp() {
             </article>
 
             {/* --- PC Items Tracker --- */}
-            <article className="panel panel-items" style={{ marginTop: '24px' }}>
+            <article className="panel panel-items" style={{ marginTop: '16px' }}>
               <div className="section-head" style={{ borderBottom: '1px solid var(--line)', paddingBottom: '16px', marginBottom: '16px' }}>
                 <div>
                   <h2>Shared Items Tracker</h2>
@@ -2208,7 +2208,7 @@ export default function FnbApp() {
         </section>
 
         {/* --- Recent Activity (Full Width Below Grid) --- */}
-        <section className="panel activity-panel desktop-only" style={{ marginTop: '24px' }}>
+        <section className="panel activity-panel desktop-only" style={{ marginTop: '16px' }}>
           <div className="section-head">
             <div>
               <h2>Recent activity</h2>
@@ -2219,7 +2219,7 @@ export default function FnbApp() {
           {recentActivity.length === 0 ? (
             <p className="empty-state">No activity yet.</p>
           ) : (
-            <div className="panel-scroll panel-scroll-activity">
+            <div className="panel-scroll panel-scroll-activity" style={{ maxHeight: 'none', height: 'auto', overflow: 'visible' }}>
               <div className="stack mini-stack" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
                 {recentActivity.map((item) => (
                   <div className="list-card dense" key={`${item.kind}-${item.id}`}>
@@ -2743,7 +2743,7 @@ export default function FnbApp() {
               </div>
               <div className="dialog-body" style={{ padding: '24px' }}>
                 <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                   <span className="brand-logo-emoji" style={{ fontSize: '3rem', marginBottom: '12px' }}>🤝</span>
+                   <img src="/fnb-logo.svg" alt="F&B Logo" style={{ height: '64px', width: 'auto', marginBottom: '16px' }} />
                    <p>A simple, offline-friendly tool to track debts, settlements, and shared items within your closest circle of friends.</p>
                 </div>
                 

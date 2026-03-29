@@ -13,13 +13,12 @@ This repo contains a starter scaffold plus the core product model so we can move
 
 ## MVP Features
 
-- Google-only sign in
-- Add friends by invite
-- Create a debt request with amount, reason, date, and optional due date
-- Debtor approves or rejects the request
-- Running balance between every pair of friends
-- Settlement entries to mark money returned
-- Activity feed for trust and auditability
+- **Dual-Consent Approval Flow**: All debts and settlements require both parties to agree before affecting balances.
+- **Shared Items Tracker**: Track things you've lent or borrowed (e.g., books, tools, expensive gear) with a full Request-Return lifecycle.
+- **Pairwise Balances**: See exactly who owes what in a clean, high-contrast dashboard.
+- **Global Approvals**: Manage all pending requests (money or items) in a single unified view.
+- **Atmospheric UI**: Immersive, Ghibli-inspired animated waterfall landing page.
+- **Play Store Ready**: Optimized for conversion into a native Android app using Capacitor.
 
 ## Why this stack
 
@@ -61,12 +60,22 @@ Direct payments inside the app are possible later, but they add payment gateway,
 6. Start locally with `npm run dev`
 7. Deploy to Vercel
 
-## Deployment
+## Deployment & Publishing
 
+### Web (Vercel)
 - App hosting: Vercel
 - Database and auth: Supabase
-- Domain: optional custom domain once the app is stable
-- Full setup guide: `DEPLOY.md`
+- Deployment guide: `DEPLOY.md`
+
+### Mobile (Google Play Store)
+This app is designed to be wrapped as a **TWA (Trusted Web Activity)** or using **Capacitor**.
+
+1. **Install Capacitor**: `npm i @capacitor/core @capacitor/cli @capacitor/android`
+2. **Initialize**: `npx cap init`
+3. **Build Web Assets**: `npm run build`
+4. **Sync Native App**: `npx cap sync android`
+5. **Publish**: Use Android Studio to generate the `.aab` file for the Google Play Console.
+6. **Icons**: Use the provided `/public/fnb-logo.svg` for your high-res store assets.
 
 ## Product Notes
 

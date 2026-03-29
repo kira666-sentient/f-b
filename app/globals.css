@@ -1749,6 +1749,20 @@ code {
     transition: transform 0.2s ease;
   }
 
+  .list-card p,
+.list-card span,
+.list-card strong {
+  word-break: break-word;
+}
+
+.brand-logo {
+  transition: transform 0.3s ease;
+}
+
+.brand-logo:hover {
+  transform: scale(1.05);
+}
+
   .mobile-welcome-avatar:active {
     transform: scale(0.94);
   }
@@ -2180,9 +2194,10 @@ code {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    margin-top: 10px;
-    padding: 0 10px;
+    gap: 20px;
+    margin-top: 20px;
+    padding: 0 16px;
+    align-items: center;
   }
 
   .layered-card {
@@ -2190,11 +2205,17 @@ code {
     top: auto !important;
     left: auto !important;
     right: auto !important;
-    width: 100% !important;
+    width: calc(100% - 16px) !important;
+    max-width: 440px;
     transform: none !important;
     margin-bottom: 0 !important;
-    padding: 20px;
-    box-shadow: 0 8px 24px rgba(73, 45, 28, 0.04);
+    padding: 24px;
+    box-shadow: 0 12px 32px rgba(73, 45, 28, 0.06);
+    background: rgba(255, 255, 255, 0.88) !important;
+    backdrop-filter: blur(32px) !important;
+    border-radius: 24px !important;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    touch-action: pan-y;
   }
 
   .dominant-card { order: 1; }
@@ -2249,6 +2270,7 @@ code {
   backdrop-filter: blur(18px);
   box-shadow: 0 16px 40px rgba(73, 45, 28, 0.05);
   transition: box-shadow 0.5s ease;
+  overflow: hidden;
 }
 
 .layered-card:hover {

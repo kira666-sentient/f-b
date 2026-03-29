@@ -1,31 +1,19 @@
-# F&B App Roadmap: Payments, Mobile, and Performance
+## 1. ✅ Completed Features
+- **Dual-Consent Architecture**: Both parties must approve debt/settlements (Status flow: `pending` -> `active`).
+- **Shared Items Tracker**: Full lifecycle management (`pending` -> `active` -> `pending_return` -> `returned`).
+- **Mobile Aesthetic Refresh**: High-contrast glassmorphism, vertical card stacks, and waterfall visibility.
+- **Identity & Branding**: SVG-integrated header and Favicon for professional Play Store presence.
 
-This document outlines the planned upgrades for the **Friends & Benefits (F&B)** app.
-
-## 1. Performance Optimization (High Priority)
-The landing page currently uses intensive canvas animations that can lag on mobile and tablet devices.
-
+## 2. Play Store Migration (Capacitor)
 ### Plan:
-- **Layer Caching**: Pre-render static elements (mountains, trees, cliffs) onto an offscreen canvas to reduce draw calls per frame.
-- **Adaptive Quality**: Scale back animation details (waterfall passes, particle counts) based on the device's screen size or performance profile.
-- **Gradient Reuse**: Cache expensive canvas gradients instead of recreating them every frame.
+- **Build App Bundle**: Test the `.aab` (Android App Bundle) on low-end devices to verify canvas performance.
+- **Splash Screens**: Create high-definition splash screens using the Ghibli theme.
 
-## 2. Payment Integration
-Adding a way for friends to settle balances directly within the app.
-
+## 3. Native Enhancements (Up Next)
 ### Plan:
-- **Provider**: Stripe (Global) or Razorpay (India-focused).
-- **Flow**: Add a "Pay Now" button to friend views, integrate a secure checkout API, and use webhooks to automatically update Supabase balances upon success.
-
-## 3. Mobile App (Play Store)
-Converting the Next.js web app into a native Android application.
-
-### Plan:
-- **Framework**: Use **Capacitor** to wrap the existing codebase.
-- **Requirements**:
-  - Google Developer Account ($25 one-time fee).
-  - Android Studio for generating the `.aab` (Android App Bundle) file.
-  - App assets: Icon (512x512) and Splash Screen.
+- **Push Notifications**: Integrate **Firebase Cloud Messaging** via Capacitor so friends get notified about pending debts immediately.
+- **Deep Linking**: Allow friend invite links to open the app directly from WhatsApp/Telegram.
+- **Canvas Caching**: Implement offscreen rendering for mountain/tree layers to save battery on mobile devices.
 
 ---
-*Created on 2026-03-29*
+*Last Updated: 2026-03-30*
