@@ -28,14 +28,18 @@ export default function LandingWaterfallScene() {
     const Bd = (a:number,b:number,c:number,d:number,t:number) =>
       3*(1-t)**2*(b-a) + 6*(1-t)*t*(c-b) + 3*t**2*(d-c);
 
-    // ── Three cascading waterfall segments as cubic beziers ────
+    // --- Three cascading waterfall segments as cubic beziers ---
+    // On narrow screens (mobile), we shift everything to the left to center the flow
+    const isMobile = window.innerWidth < 768;
+    const shift = isMobile ? -0.15 : 0;
+
     const SEGS = [
-      { p0:[0.97,0.01], p1:[0.84,0.03], p2:[0.78,0.30], p3:[0.74,0.38] },
-      { p0:[0.74,0.38], p1:[0.68,0.44], p2:[0.57,0.56], p3:[0.52,0.63] },
-      { p0:[0.52,0.63], p1:[0.44,0.70], p2:[0.33,0.80], p3:[0.28,0.87] },
+      { p0:[0.97+shift,0.01], p1:[0.84+shift,0.03], p2:[0.78+shift,0.30], p3:[0.74+shift,0.38] },
+      { p0:[0.74+shift,0.38], p1:[0.68+shift,0.44], p2:[0.57+shift,0.56], p3:[0.52+shift,0.63] },
+      { p0:[0.52+shift,0.63], p1:[0.44+shift,0.70], p2:[0.33+shift,0.80], p3:[0.28+shift,0.87] },
     ];
 
-    // ── Sample bezier arc into array of points ─────────────────
+    // --- Sample bezier arc into array of points ---
     const sampleArc = (seg: typeof SEGS[0], N=90) => {
       const [x0,y0]=seg.p0,[bx1,by1]=seg.p1,[cx1,cy1]=seg.p2,[x3,y3]=seg.p3;
       return Array.from({length:N+1},(_,i)=>{

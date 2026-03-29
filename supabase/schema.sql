@@ -50,6 +50,16 @@ create table if not exists settlements (
   created_at timestamptz not null default now()
 );
 
+create table if not exists shared_items (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references profiles(id) on delete cascade,
+  friend_id uuid not null references profiles(id) on delete cascade,
+  item_name text not null,
+  type text not null check (type in ('gave', 'borrowed')),
+  status text not null default 'active' check (status in ('active', 'returned')),
+  created_at timestamptz not null default now()
+);
+
 create view pair_balances as
 select
   least(a_id, b_id) as user_a,
@@ -81,6 +91,7 @@ alter table profiles enable row level security;
 alter table friendships enable row level security;
 alter table debt_requests enable row level security;
 alter table settlements enable row level security;
+alter table shared_items enable row level security;
 
 create policy "profiles are visible to signed in users"
 on profiles for select
@@ -140,6 +151,20 @@ on settlements for update
 to authenticated
 using (auth.uid() = receiver_id and status = 'pending')
 with check (auth.uid() = receiver_id);
+
+create policy "shared items visible to both parties"
+on shared_items for select
+to authenticated
+using (auth.uid() = owner_id or auth.uid() = friend_id);
+
+create policy "owner can manage shared items"
+on shared_items for all
+to authenticated
+using (auth.uid() = owner_id)
+with check (auth.uid() = owner_id);
+
+create index if not exists shared_items_owner_idx on shared_items (owner_id);
+create index if not exists shared_items_friend_idx on shared_items (friend_id);
 
 create or replace function validate_debt_request_update()
 returns trigger

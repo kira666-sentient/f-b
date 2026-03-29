@@ -1811,6 +1811,17 @@ export default function FnbApp() {
           </article>
         </section>
 
+        {/* --- Mobile Welcome Section --- */}
+        <header className="mobile-welcome mobile-only">
+          <div className="mobile-welcome-text">
+            <h2>Hello, {dashboard.profile?.full_name?.split(' ')[0] || 'Friend'}</h2>
+            <p className="muted">You have {pendingApprovals.length + pendingSettlements.length} items to review.</p>
+          </div>
+          <div className="mobile-welcome-avatar" onClick={() => setIsSidebarOpen(true)}>
+            <Avatar profile={dashboard.profile} size="medium" />
+          </div>
+        </header>
+
         {/* === Mobile Home Grid (4 nav cards) === */}
         <div className="mobile-home-grid mobile-only">
           <button className="mobile-nav-card" onClick={() => setMobilePage("network")}>
