@@ -1166,7 +1166,7 @@ export default function FnbApp() {
           <button className="ghost-button" onClick={refreshData} disabled={refreshing}>
             {refreshing ? "Refreshing..." : "Refresh"}
           </button>
-          <button className="ghost-button" onClick={signOut}>
+          <button className="ghost-button danger-ghost-button" onClick={signOut}>
             Sign out
           </button>
         </div>
