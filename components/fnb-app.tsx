@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useMemo, useRef, useState, useTransition, useCallback } from "react";
+import React, { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import {
   getAppOrigin,
@@ -2624,7 +2624,7 @@ export default function FnbApp() {
                    <li><strong>Network:</strong> Add friends using their exact F&B username.</li>
                    <li><strong>Money:</strong> Log debts when you pay for them, or settlements when they pay you back offline.</li>
                    <li><strong>Approvals:</strong> Once you log a money action, they must approve it!</li>
-                   <li><strong>Items:</strong> Keep an unverified list of items you've lent out or borrowed.</li>
+                   <li><strong>Items:</strong> Keep an unverified list of items you&apos;ve lent out or borrowed.</li>
                 </ul>
 
                 <h3 style={{ fontSize: '1.05rem', marginBottom: '12px', borderBottom: '1px solid var(--line)', paddingBottom: '8px' }}>About the Creator</h3>
