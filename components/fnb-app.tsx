@@ -2031,7 +2031,7 @@ export default function FnbApp() {
               </button>
             </div>
 
-            <div className="action-row" style={{ marginTop: "16px", marginBottom: "8px" }}>
+            <div className="action-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "16px", marginBottom: "12px" }}>
               <button
                 className="primary-button"
                 onClick={() => {
@@ -2040,7 +2040,17 @@ export default function FnbApp() {
                   setIsSettlementDialogOpen(true);
                 }}
               >
-                Settle up now
+                💸 Pay them
+              </button>
+              <button
+                className="ghost-button"
+                onClick={() => {
+                  setIsStatementDialogOpen(false);
+                  setDebtForm(current => ({...current, friendId: selectedFriend.profile.id}));
+                  setIsDebtDialogOpen(true);
+                }}
+              >
+                📝 Log expense
               </button>
             </div>
 

@@ -1688,8 +1688,28 @@ code {
     max-height: 300px;
   }
 
+  /* Bottom sheet mobile dialogs */
+  .dialog-backdrop {
+    align-items: flex-end; /* Snap to bottom */
+    padding: 0;
+  }
+
   .dialog-card {
-    padding: 20px;
+    margin: 0;
+    width: 100vw;
+    max-height: 85vh; /* Keep top 15% clear to tap out */
+    border-radius: 32px 32px 0 0; /* Only round top corners */
+    padding: 28px 20px 40px; /* Extra bottom padding for safe area */
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
   }
 }
 
