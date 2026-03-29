@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "F&B - Friends and Benefits",
+  title: "friends and benefits",
   description: "Shared debt tracking for friends with approvals and simple balances."
 };
 

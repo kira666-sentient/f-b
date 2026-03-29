@@ -60,6 +60,34 @@ button {
   padding: 56px 0 72px;
 }
 
+.brand-logo-emoji {
+  font-size: 2.2rem;
+  line-height: 1;
+  display: inline-block;
+  user-select: none;
+  filter: drop-shadow(0 4px 6px rgba(216, 97, 43, 0.2));
+}
+
+.help-icon-button {
+  font-size: 1.4rem;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(216, 97, 43, 0.15);
+  border: 1px solid rgba(216, 97, 43, 0.2);
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.help-icon-button:hover {
+  background: white;
+  transform: scale(1.05);
+}
+
 .hero {
   padding: 32px;
   border: 1px solid rgba(31, 26, 20, 0.06);
@@ -1358,7 +1386,7 @@ textarea {
 
 .statement-table th,
 .statement-table td {
-  padding: 14px 12px;
+  padding: 14px 16px; 
   border-bottom: 1px solid var(--line);
   text-align: left;
   vertical-align: top;
@@ -1697,25 +1725,70 @@ code {
   .mobile-home-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    padding: 16px;
+    gap: 16px;
+    padding: 24px 20px;
   }
 
   .mobile-nav-card {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 28px 16px;
-    border-radius: 20px;
-    border: 1px solid var(--line);
-    background: rgba(255, 251, 245, 0.85);
-    box-shadow: 0 8px 24px rgba(73, 45, 28, 0.06);
-    text-align: center;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 20px 18px;
+    border-radius: 24px;
+    border: 1px solid rgba(0,0,0,0.03);
+    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(252,248,242,0.85) 100%);
+    box-shadow: 0 12px 32px rgba(73, 45, 28, 0.08);
+    text-align: left;
     cursor: pointer;
     transition: transform 120ms ease, box-shadow 120ms ease;
     -webkit-tap-highlight-color: transparent;
+    height: 120px;
+  }
+
+  .mobile-nav-card:active {
+    transform: scale(0.96);
+    box-shadow: 0 4px 12px rgba(73, 45, 28, 0.05);
+  }
+
+  .mobile-nav-card .nav-card-icon {
+    font-size: 2rem;
+    line-height: 1;
+    background: rgba(255,255,255,0.8);
+    padding: 8px;
+    border-radius: 14px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+  }
+
+  .mobile-nav-card .nav-card-label {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .mobile-nav-card .nav-card-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 4px 10px;
+    border-radius: 99px;
+  }
+
+  .mobile-nav-card.items-card {
+    grid-column: span 2;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+  }
+  .mobile-nav-card.items-card .nav-card-label {
+    font-size: 1.1rem;
   }
 
   .mobile-nav-card:active {
@@ -1929,6 +2002,59 @@ code {
     min-width: auto;
     min-height: auto;
     padding: 8px;
+  }
+
+  .statement-table th,
+  .statement-table td {
+    white-space: normal;
+    word-break: break-word;
+    padding: 12px 8px;
+  }
+
+  .statement-table thead {
+    display: none;
+  }
+
+  .statement-table tr {
+    display: block;
+    border-bottom: 2px solid var(--line-soft);
+    padding: 12px 0;
+  }
+
+  .statement-table td {
+    display: block;
+    border: none;
+    padding: 2px 0;
+  }
+
+  .statement-table td:first-child {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .statement-table td:nth-child(2) {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .statement-table td:last-child {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-soft);
+    padding: 6px 10px;
+    border-radius: 8px;
+    margin-top: 8px;
+  }
+
+  .statement-table td:last-child::before {
+    content: "Subtotal Balance";
+    font-size: 0.7rem;
+    color: var(--muted);
+    font-weight: 600;
   }
 
   .dialog-body, .statement-shell, .dialog-profile, .form-grid, .action-row {

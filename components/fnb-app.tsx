@@ -13,7 +13,8 @@ import type {
   DebtRequest,
   Friendship,
   Profile,
-  Settlement
+  Settlement,
+  SharedItem
 } from "@/lib/app-types";
 
 import FnbLanding from "./fnb-landing";
@@ -52,6 +53,7 @@ type DashboardData = {
   profiles: Profile[];
   debtRequests: DebtRequest[];
   settlements: Settlement[];
+  sharedItems: SharedItem[];
 };
 
 const money = new Intl.NumberFormat("en-IN", {
@@ -140,7 +142,8 @@ export default function FnbApp() {
     friendships: [],
     profiles: [],
     debtRequests: [],
-    settlements: []
+    settlements: [],
+    sharedItems: []
   });
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -168,7 +171,14 @@ export default function FnbApp() {
   const [isDebtDialogOpen, setIsDebtDialogOpen] = useState(false);
   const [isSettlementDialogOpen, setIsSettlementDialogOpen] = useState(false);
   const [selectedFriendId, setSelectedFriendId] = useState("");
-  const [mobilePage, setMobilePage] = useState<"home" | "network" | "approvals" | "money" | "activity">("home");
+  const [mobilePage, setMobilePage] = useState<"home" | "network" | "approvals" | "money" | "activity" | "items">("home");
+
+  // Items State (Now DB driven)
+  const [isItemsDialogOpen, setIsItemsDialogOpen] = useState(false);
+  const [itemForm, setItemForm] = useState({ name: "", type: "gave" as "gave" | "borrowed", friendId: "", date: new Date().toISOString().slice(0, 10) });
+
+  // About State
+  const [isAboutDialogOpen, setIsAboutDialogOpen] = useState(false);
 
   // --- Toast auto-dismiss ---
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -261,7 +271,8 @@ export default function FnbApp() {
           friendships: [],
           profiles: [],
           debtRequests: [],
-          settlements: []
+          settlements: [],
+          sharedItems: []
         });
         return;
       }
@@ -385,7 +396,7 @@ export default function FnbApp() {
       setRefreshing(true);
     }
 
-    const [profileResult, friendshipsResult, debtsResult, settlementsResult] =
+    const [profileResult, friendshipsResult, debtsResult, settlementsResult, itemsResult] =
       await Promise.all([
         client
           .from("profiles")
@@ -412,7 +423,12 @@ export default function FnbApp() {
             "id, payer_id, receiver_id, amount_in_paise, currency, note, settled_at, status, approved_at, rejected_at, created_at"
           )
           .or(`payer_id.eq.${userId},receiver_id.eq.${userId}`)
-          .order("settled_at", { ascending: false })
+          .order("settled_at", { ascending: false }),
+        client
+          .from("shared_items")
+          .select("id, owner_id, friend_id, item_name, type, status, created_at")
+          .or(`owner_id.eq.${userId},friend_id.eq.${userId}`)
+          .order("created_at", { ascending: false })
       ]);
 
     if (profileResult.error) {
@@ -443,9 +459,17 @@ export default function FnbApp() {
       throw settlementsResult.error;
     }
 
+    if (itemsResult.error) {
+      if (!silent) {
+        setRefreshing(false);
+      }
+      throw itemsResult.error;
+    }
+
     const friendships = (friendshipsResult.data ?? []) as Friendship[];
     const debtRequests = (debtsResult.data ?? []) as DebtRequest[];
     const settlements = (settlementsResult.data ?? []) as Settlement[];
+    const sharedItems = (itemsResult.data ?? []) as SharedItem[];
 
     const relatedProfileIds = new Set<string>();
 
@@ -462,6 +486,11 @@ export default function FnbApp() {
     settlements.forEach((settlement) => {
       relatedProfileIds.add(settlement.payer_id);
       relatedProfileIds.add(settlement.receiver_id);
+    });
+
+    sharedItems.forEach((item) => {
+      relatedProfileIds.add(item.owner_id);
+      relatedProfileIds.add(item.friend_id);
     });
 
     const ids = [...relatedProfileIds];
@@ -488,7 +517,8 @@ export default function FnbApp() {
       friendships,
       profiles,
       debtRequests,
-      settlements
+      settlements,
+      sharedItems
     });
     if (!silent) {
       setRefreshing(false);
@@ -1247,6 +1277,56 @@ export default function FnbApp() {
     );
   }
 
+  const submitItemForm = async () => {
+    const client = supabase;
+    if (!itemForm.name.trim() || !itemForm.friendId || !session?.user || !client) {
+      setError("Please provide an item name and choose a friend.");
+      return;
+    }
+
+    startMutation(async () => {
+      const { error: saveError } = await client.from("shared_items").insert({
+        owner_id: session.user.id,
+        friend_id: itemForm.friendId,
+        item_name: itemForm.name.trim(),
+        type: itemForm.type,
+        status: "active"
+      });
+
+      if (saveError) {
+        setError(getErrorMessage(saveError));
+      } else {
+        setFeedback(`Recorded that you ${itemForm.type === "gave" ? "lent" : "borrowed"} an item.`);
+        setItemForm({ name: "", type: "gave", friendId: "", date: new Date().toISOString().slice(0, 10) });
+        setIsItemsDialogOpen(false);
+        await loadDashboard(session.user.id, { silent: true });
+      }
+    });
+  };
+
+  const removeItem = async (id: string, e?: React.MouseEvent) => {
+    const client = supabase;
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (!session?.user || !client) return;
+
+    startMutation(async () => {
+      const { error: deleteError } = await client
+        .from("shared_items")
+        .delete()
+        .eq("id", id);
+
+      if (deleteError) {
+        setError(getErrorMessage(deleteError));
+      } else {
+        setFeedback("Item removed.");
+        await loadDashboard(session.user.id, { silent: true });
+      }
+    });
+  };
+
   if (booting) {
     return (
       <main className="shell">
@@ -1343,7 +1423,7 @@ export default function FnbApp() {
                   <button
                     className="friend-card"
                     key={friend.friendshipId}
-                    onClick={() => { setMobilePage("home"); openStatementDialog(friend.profile.id); }}
+                    onClick={() => openStatementDialog(friend.profile.id)}
                   >
                     <PersonIdentity profile={friend.profile} />
                     <div className="friend-card-side">
@@ -1457,7 +1537,7 @@ export default function FnbApp() {
             <div style={{ display: 'grid', gap: '12px' }}>
               <button
                 className="action-option-card"
-                onClick={() => { setMobilePage("home"); setError(null); setFeedback(null); setIsDebtDialogOpen(true); }}
+                onClick={() => { setError(null); setFeedback(null); setIsDebtDialogOpen(true); }}
                 type="button"
               >
                 <span className="profile-label">Approval flow</span>
@@ -1466,7 +1546,7 @@ export default function FnbApp() {
               </button>
               <button
                 className="action-option-card"
-                onClick={() => { setMobilePage("home"); setError(null); setFeedback(null); setIsSettlementDialogOpen(true); }}
+                onClick={() => { setError(null); setFeedback(null); setIsSettlementDialogOpen(true); }}
                 type="button"
               >
                 <span className="profile-label">Direct payment</span>
@@ -1474,6 +1554,35 @@ export default function FnbApp() {
                 <p>Note a payment already made outside the app so balances stay accurate.</p>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {mobilePage === "items" && (
+        <div className="mobile-page mobile-only">
+          <div className="mobile-page-header">
+            <button className="mobile-back-btn" onClick={() => setMobilePage("home")}>← Back</button>
+            <h2>Shared Items</h2>
+            <button className="ghost-button" onClick={() => setIsItemsDialogOpen(true)} style={{ marginLeft: "auto", fontSize: "1.2rem", padding: "4px" }}>+</button>
+          </div>
+          <div className="mobile-page-content">
+            {dashboard.sharedItems.length === 0 ? (
+              <p className="empty-state">No shared items tracked.</p>
+            ) : (
+              <div className="stack mini-stack">
+                {dashboard.sharedItems.map(item => (
+                  <div className="list-card dense" key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <strong>{item.item_name}</strong>
+                      <p className="muted" style={{ margin: 0, fontSize: '0.85rem' }}>
+                        {item.type === 'gave' ? 'Lent to' : 'Borrowed from'} {dashboard.profiles.find(p => p.id === item.friend_id)?.full_name || 'friend'}
+                      </p>
+                    </div>
+                    <button className="ghost-button danger-ghost-button" onClick={(e) => removeItem(item.id, e)} style={{ padding: '6px' }}>Return</button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1535,14 +1644,14 @@ export default function FnbApp() {
           {/* Mobile: Centered title */}
           <h1 className="app-title mobile-only" style={{ fontSize: '1.1rem', margin: 0 }}>Friends & Benefits</h1>
 
-          {/* Mobile: Refresh icon */}
+          {/* Mobile: Help/About icon */}
           <button
-            className="mobile-only ghost-button"
-            onClick={refreshData}
-            disabled={refreshing}
-            style={{ padding: '8px', fontSize: '1rem' }}
+            className="mobile-only help-icon-button"
+            onClick={() => setIsAboutDialogOpen(true)}
+            title="How to use & About Me"
+            type="button"
           >
-            🔄
+            ❓
           </button>
         </section>
 
@@ -1558,6 +1667,14 @@ export default function FnbApp() {
           </div>
 
           <div className="profile-strip-actions">
+            <button
+              className="help-icon-button"
+              onClick={() => setIsAboutDialogOpen(true)}
+              title="How to use & About Me"
+              type="button"
+            >
+              ❓
+            </button>
             <button
               className="primary-button profile-strip-button"
               onClick={openProfileDialog}
@@ -1713,7 +1830,12 @@ export default function FnbApp() {
           <button className="mobile-nav-card" onClick={() => setMobilePage("activity")}>
             <span className="nav-card-icon">📊</span>
             <span className="nav-card-label">Activity</span>
-            <span className="nav-card-badge">{recentActivity.length} entries</span>
+            <span className="nav-card-badge">{recentActivity.length}</span>
+          </button>
+          <button className="mobile-nav-card items-card" onClick={() => setMobilePage("items")}>
+            <span className="nav-card-icon">🎒</span>
+            <span className="nav-card-label">Item Tracker</span>
+            <span className="nav-card-badge">{dashboard.sharedItems.length} items</span>
           </button>
         </div>
 
@@ -1879,6 +2001,41 @@ export default function FnbApp() {
                       </div>
                     )}
                   </section>
+                </div>
+              </div>
+            </article>
+
+            {/* --- PC Items Tracker --- */}
+            <article className="panel panel-items" style={{ marginBottom: '20px' }}>
+              <div className="section-head" style={{ borderBottom: '1px solid var(--line)', paddingBottom: '16px', marginBottom: '16px' }}>
+                <div>
+                  <h2>Shared Items Tracker</h2>
+                  <p className="muted">Keep track of things you lent or borrowed.</p>
+                </div>
+                <button className="primary-button" onClick={() => setIsItemsDialogOpen(true)} style={{ padding: '6px 12px' }}>
+                  + Log Item
+                </button>
+              </div>
+              <div className="panel-scroll" style={{ maxHeight: 'none', height: 'auto' }}>
+                <div className="section-stack">
+                  {dashboard.sharedItems.length === 0 ? (
+                    <p className="empty-state">No shared items right now.</p>
+                  ) : (
+                    <div className="stack mini-stack">
+                      {dashboard.sharedItems.map((item: SharedItem) => (
+                        <div className="list-card dense" key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <strong>{item.item_name}</strong>
+                            <p className="muted" style={{ margin: '4px 0 0', fontSize: '0.85rem' }}>
+                              <span className="profile-label" style={{ fontSize: '0.65rem', marginRight: '6px' }}>{item.type.toUpperCase()}</span> 
+                              {item.type === 'gave' ? 'to' : 'from'} {dashboard.profiles.find(p => p.id === item.friend_id)?.full_name || 'friend'}
+                            </p>
+                          </div>
+                          <button className="ghost-button danger-ghost-button" onClick={(e) => removeItem(item.id, e)} style={{ padding: '6px 12px' }}>Return</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </article>
@@ -2302,7 +2459,6 @@ export default function FnbApp() {
                   <button
                     className="primary-button"
                     onClick={() => {
-                      setIsStatementDialogOpen(false);
                       setSettlementForm(current => ({ ...current, friendId: selectedFriend.profile.id }));
                       setIsSettlementDialogOpen(true);
                     }}
@@ -2312,7 +2468,6 @@ export default function FnbApp() {
                   <button
                     className="ghost-button"
                     onClick={() => {
-                      setIsStatementDialogOpen(false);
                       setDebtForm(current => ({ ...current, friendId: selectedFriend.profile.id }));
                       setIsDebtDialogOpen(true);
                     }}
@@ -2435,6 +2590,100 @@ export default function FnbApp() {
                     </div>
                   </div>
                 )}
+              </div>
+            </section>
+          </div>
+        )}
+
+        {isAboutDialogOpen && (
+          <div className="dialog-backdrop" onClick={() => setIsAboutDialogOpen(false)} role="presentation">
+            <section className="dialog-card" onClick={(event) => event.stopPropagation()} style={{ maxWidth: '440px' }}>
+              <div className="dialog-head">
+                <h2>About Friends & Benefits</h2>
+                <button className="ghost-button dialog-close-button" onClick={() => setIsAboutDialogOpen(false)}>X</button>
+              </div>
+              <div className="dialog-body" style={{ padding: '24px' }}>
+                <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                   <span className="brand-logo-emoji" style={{ fontSize: '3rem', marginBottom: '12px' }}>🤝</span>
+                   <p>A simple, offline-friendly tool to track debts, settlements, and shared items within your closest circle of friends.</p>
+                </div>
+                
+                <h3 style={{ fontSize: '1.05rem', marginBottom: '12px', borderBottom: '1px solid var(--line)', paddingBottom: '8px' }}>How to use</h3>
+                <ul className="muted" style={{ fontSize: '0.9rem', paddingLeft: '20px', display: 'grid', gap: '8px', marginBottom: '24px' }}>
+                   <li><strong>Network:</strong> Add friends using their exact F&B username.</li>
+                   <li><strong>Money:</strong> Log debts when you pay for them, or settlements when they pay you back offline.</li>
+                   <li><strong>Approvals:</strong> Once you log a money action, they must approve it!</li>
+                   <li><strong>Items:</strong> Keep an unverified list of items you've lent out or borrowed.</li>
+                </ul>
+
+                <h3 style={{ fontSize: '1.05rem', marginBottom: '12px', borderBottom: '1px solid var(--line)', paddingBottom: '8px' }}>About the Creator</h3>
+                <div style={{ display: 'grid', gap: '12px', marginTop: '16px' }}>
+                   <a href="https://www.linkedin.com/in/karan-gupta-827731326/" target="_blank" rel="noopener noreferrer" className="primary-button" style={{ textDecoration: 'none', textAlign: 'center' }}>
+                     Connect on LinkedIn
+                   </a>
+                   <a href="https://instagram.com/blackhairedkaran" target="_blank" rel="noopener noreferrer" className="ghost-button" style={{ textDecoration: 'none', textAlign: 'center', border: '1px solid var(--line)' }}>
+                     Follow @blackhairedkaran
+                   </a>
+                </div>
+              </div>
+            </section>
+          </div>
+        )}
+
+        {isItemsDialogOpen && (
+          <div className="dialog-backdrop" onClick={() => setIsItemsDialogOpen(false)} role="presentation">
+            <section className="dialog-card form-dialog" onClick={(event) => event.stopPropagation()} style={{ maxWidth: '440px' }}>
+              <div className="dialog-head">
+                <h2>Log Shared Item</h2>
+                <button className="ghost-button dialog-close-button" onClick={() => setIsItemsDialogOpen(false)}>X</button>
+              </div>
+
+              {(error || feedback) && (
+                <div className={`dialog-banner ${error ? "error-banner" : "success-banner"}`} style={{ borderRadius: '12px', padding: '12px 16px', marginBottom: '20px', fontSize: '0.9rem' }}>
+                  {error ?? feedback}
+                </div>
+              )}
+
+              <div className="dialog-body">
+                <div className="form-grid compact-grid" style={{ marginBottom: '20px' }}>
+                  <label>
+                    <span className="profile-label">Action</span>
+                    <select
+                      value={itemForm.type}
+                      onChange={(e) => setItemForm(current => ({ ...current, type: e.target.value as "gave" | "borrowed" }))}
+                      style={{ padding: '12px', borderRadius: '12px', border: '1px solid var(--line)' }}
+                    >
+                      <option value="gave">I lent an item to...</option>
+                      <option value="borrowed">I borrowed an item from...</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    <span className="profile-label">{itemForm.type === 'gave' ? 'To Friend' : 'From Friend'}</span>
+                    <FriendPicker
+                      friends={balances}
+                      selectedId={itemForm.friendId}
+                      onSelect={(friendId) => setItemForm(current => ({ ...current, friendId }))}
+                      placeholder="Choose a friend"
+                    />
+                  </label>
+
+                  <label>
+                    <span className="profile-label">Item Name</span>
+                    <input
+                      type="text"
+                      value={itemForm.name}
+                      onChange={(e) => setItemForm(current => ({ ...current, name: e.target.value }))}
+                      placeholder="e.g., The Matrix DVD, Toolkit, 500Rs Cash"
+                    />
+                  </label>
+                </div>
+
+                <div className="action-row">
+                  <button className="primary-button" onClick={submitItemForm}>
+                    Save Item record
+                  </button>
+                </div>
               </div>
             </section>
           </div>

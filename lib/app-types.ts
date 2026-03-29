@@ -44,3 +44,13 @@ export type Settlement = {
   rejected_at: string | null;
   created_at: string;
 };
+
+export type SharedItem = {
+  id: string;
+  owner_id: string;
+  friend_id: string;
+  item_name: string;
+  type: "gave" | "borrowed";
+  status: "active" | "returned";
+  created_at: string;
+};
