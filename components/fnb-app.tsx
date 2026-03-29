@@ -1286,7 +1286,8 @@ export default function FnbApp() {
           </button>
         </section>
 
-        {(error || feedback) && (
+        {/* Global banner only if no dialog is open */}
+        {!(isProfileDialogOpen || isStatementDialogOpen || isDebtDialogOpen || isSettlementDialogOpen || isSidebarOpen) && (error || feedback) && (
           <section className={`banner ${error ? "error-banner" : "success-banner"}`}>
             <p>{error ?? feedback}</p>
           </section>
@@ -1361,6 +1362,12 @@ export default function FnbApp() {
                 X
               </button>
             </div>
+
+            {(error || feedback) && (
+              <div className={`dialog-banner ${error ? "error-banner" : "success-banner"}`} style={{ borderRadius: '12px', padding: '12px 16px', marginBottom: '20px', fontSize: '0.9rem' }}>
+                {error ?? feedback}
+              </div>
+            )}
 
             <div className="dialog-profile">
               <Avatar profile={dashboard.profile} size="large" />
@@ -1746,14 +1753,9 @@ export default function FnbApp() {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="dialog-head">
-              <div>
-                <h2>Create debt</h2>
-                <p className="muted">
-                  Log a debt request, then let your friend approve it from their side.
-                </p>
-              </div>
+              <h2>Record a debt</h2>
               <button
-                aria-label="Close create debt dialog"
+                aria-label="Close debt dialog"
                 className="ghost-button dialog-close-button"
                 onClick={() => setIsDebtDialogOpen(false)}
                 type="button"
@@ -1761,6 +1763,12 @@ export default function FnbApp() {
                 X
               </button>
             </div>
+
+            {(error || feedback) && (
+              <div className={`dialog-banner ${error ? "error-banner" : "success-banner"}`} style={{ borderRadius: '12px', padding: '12px 16px', marginBottom: '20px', fontSize: '0.9rem' }}>
+                {error ?? feedback}
+              </div>
+            )}
 
             <div className="dialog-body">
               <div className="form-grid compact-grid">
@@ -1883,12 +1891,7 @@ export default function FnbApp() {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="dialog-head">
-              <div>
-                <h2>Record settlement</h2>
-                <p className="muted">
-                  Note a payment already made directly outside the app.
-                </p>
-              </div>
+              <h2>Record a settlement</h2>
               <button
                 aria-label="Close settlement dialog"
                 className="ghost-button dialog-close-button"
@@ -1898,6 +1901,12 @@ export default function FnbApp() {
                 X
               </button>
             </div>
+
+            {(error || feedback) && (
+              <div className={`dialog-banner ${error ? "error-banner" : "success-banner"}`} style={{ borderRadius: '12px', padding: '12px 16px', marginBottom: '20px', fontSize: '0.9rem' }}>
+                {error ?? feedback}
+              </div>
+            )}
 
             <div className="dialog-body">
               <div className="form-grid compact-grid">
@@ -2041,6 +2050,12 @@ export default function FnbApp() {
                 X
               </button>
             </div>
+
+            {(error || feedback) && (
+              <div className={`dialog-banner ${error ? "error-banner" : "success-banner"}`} style={{ borderRadius: '12px', padding: '12px 16px', marginBottom: '20px', fontSize: '0.9rem' }}>
+                {error ?? feedback}
+              </div>
+            )}
 
             <div className="statement-shell">
               <div className="statement-header" style={{ marginBottom: "16px" }}>
