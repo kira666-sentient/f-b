@@ -157,8 +157,9 @@ export default function FnbApp() {
   });
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [isStatementDialogOpen, setIsStatementDialogOpen] = useState(false);
+  const [isDebtDialogOpen, setIsDebtDialogOpen] = useState(false);
+  const [isSettlementDialogOpen, setIsSettlementDialogOpen] = useState(false);
   const [selectedFriendId, setSelectedFriendId] = useState("");
-  const [moneyTab, setMoneyTab] = useState<"debt" | "settlement">("debt");
 
   function openProfileDialog() {
     setUsernameDraft(dashboard.profile?.username ?? "");
@@ -972,12 +973,13 @@ export default function FnbApp() {
       }
 
       setDebtForm({
-        friendId: debtForm.friendId,
+        friendId: "",
         amount: "",
         reason: "",
         debtDate: new Date().toISOString().slice(0, 10),
         dueAt: ""
       });
+      setIsDebtDialogOpen(false);
       setFeedback("Debt request created and waiting for approval.");
       await refreshData();
     });
@@ -1053,10 +1055,11 @@ export default function FnbApp() {
       }
 
       setSettlementForm({
-        friendId: settlementForm.friendId,
+        friendId: "",
         amount: "",
         note: ""
       });
+      setIsSettlementDialogOpen(false);
       setFeedback("Settlement recorded.");
       await refreshData();
     });
@@ -1293,175 +1296,276 @@ export default function FnbApp() {
       </section>
 
       <section className="dashboard-grid">
-        <article className="panel panel-friends">
-          <div className="section-head">
-            <div>
-              <h2>Friends</h2>
-              <p className="muted">
-                Invite friends by their F&B username. Yours is @
-                {dashboard.profile?.username ?? "not-set"}.
-              </p>
+        <div className="dashboard-column">
+          <article className="panel">
+            <div className="section-head">
+              <div>
+                <h2>Invite friend</h2>
+                <p className="muted">
+                  Invite friends by their F&B username. Yours is @
+                  {dashboard.profile?.username ?? "not-set"}.
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div className="form-grid compact-grid">
-            <label>
-              <span>Invite by username</span>
-              <input
-                value={inviteUsername}
-                onChange={(event) => setInviteUsername(event.target.value)}
-                placeholder="friend_username"
-              />
-            </label>
-          </div>
+            <div className="form-grid compact-grid">
+              <label>
+                <span>Invite by username</span>
+                <input
+                  value={inviteUsername}
+                  onChange={(event) => setInviteUsername(event.target.value)}
+                  placeholder="friend_username"
+                />
+              </label>
+            </div>
 
-          <div className="action-row">
-            <button className="primary-button" onClick={sendInvite} disabled={mutating}>
-              Send invite
-            </button>
-          </div>
+            <div className="action-row">
+              <button className="primary-button" onClick={sendInvite} disabled={mutating}>
+                Send invite
+              </button>
+            </div>
+          </article>
 
-          <div className="panel-scroll panel-scroll-friends">
-            <div className="section-stack">
-              <section className="subpanel">
-                <div className="subpanel-head">
-                  <h3>Your friends</h3>
-                  <span className="count-chip">{balances.length}</span>
-                </div>
-                {balances.length === 0 ? (
-                  <p className="empty-state">No accepted friends yet.</p>
-                ) : (
-                  <div className="stack mini-stack">
-                    {balances.map((friend) => (
-                      <button
-                        className={`friend-card ${
-                          selectedFriendId === friend.profile.id ? "friend-card-active" : ""
-                        }`}
-                        key={friend.friendshipId}
-                        onClick={() => openStatementDialog(friend.profile.id)}
-                      >
-                        <PersonIdentity profile={friend.profile} />
-                        <div className="friend-card-side">
-                          <span
-                            className={`amount-badge ${
-                              friend.balanceInPaise > 0
-                                ? "positive"
-                                : friend.balanceInPaise < 0
-                                  ? "negative"
-                                  : ""
-                            }`}
-                          >
-                            {formatCurrency(friend.balanceInPaise)}
-                          </span>
-                          <small>View statement</small>
-                        </div>
-                      </button>
-                    ))}
+          <article className="panel panel-network">
+            <div className="section-head">
+              <div>
+                <h2>Your network</h2>
+                <p className="muted">
+                  Friends, incoming invites, and outgoing requests stay organized here.
+                </p>
+              </div>
+            </div>
+
+            <div className="panel-scroll panel-scroll-network">
+              <div className="section-stack">
+                <section className="subpanel">
+                  <div className="subpanel-head">
+                    <h3>Your friends</h3>
+                    <span className="count-chip">{balances.length}</span>
                   </div>
-                )}
-              </section>
-
-              <section className="subpanel">
-                <div className="subpanel-head">
-                  <h3>Incoming invites</h3>
-                  <span className="count-chip">{incomingInvites.length}</span>
-                </div>
-                {incomingInvites.length === 0 ? (
-                  <p className="empty-state">No incoming invites right now.</p>
-                ) : (
-                  <div className="stack mini-stack">
-                    {incomingInvites.map((invite) => {
-                      const friend = profilesById.get(invite.requester_id);
-
-                      return (
-                        <div className="list-card" key={invite.id}>
-                          <PersonIdentity profile={friend} />
-                          <div className="row-actions">
-                            <button
-                              className="primary-button"
-                              onClick={() => respondToInvite(invite.id, true)}
-                              disabled={mutating}
+                  {balances.length === 0 ? (
+                    <p className="empty-state">No accepted friends yet.</p>
+                  ) : (
+                    <div className="stack mini-stack">
+                      {balances.map((friend) => (
+                        <button
+                          className={`friend-card ${
+                            selectedFriendId === friend.profile.id ? "friend-card-active" : ""
+                          }`}
+                          key={friend.friendshipId}
+                          onClick={() => openStatementDialog(friend.profile.id)}
+                        >
+                          <PersonIdentity profile={friend.profile} />
+                          <div className="friend-card-side">
+                            <span
+                              className={`amount-badge ${
+                                friend.balanceInPaise > 0
+                                  ? "positive"
+                                  : friend.balanceInPaise < 0
+                                    ? "negative"
+                                    : ""
+                              }`}
                             >
-                              Accept
-                            </button>
-                            <button
-                              className="ghost-button"
-                              onClick={() => respondToInvite(invite.id, false)}
-                              disabled={mutating}
-                            >
-                              Decline
-                            </button>
+                              {formatCurrency(friend.balanceInPaise)}
+                            </span>
+                            <small>View statement</small>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </section>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </section>
 
-              <section className="subpanel">
-                <div className="subpanel-head">
-                  <h3>Outgoing invites</h3>
-                  <span className="count-chip">{outgoingInvites.length}</span>
-                </div>
-                {outgoingInvites.length === 0 ? (
-                  <p className="empty-state">No pending invites sent.</p>
-                ) : (
-                  <div className="stack mini-stack">
-                    {outgoingInvites.map((invite) => {
-                      const friend = profilesById.get(invite.addressee_id);
-
-                      return (
-                        <div className="list-card" key={invite.id}>
-                          <PersonIdentity profile={friend} />
-                          <span className="pill">Waiting</span>
-                        </div>
-                      );
-                    })}
+                <section className="subpanel">
+                  <div className="subpanel-head">
+                    <h3>Incoming invites</h3>
+                    <span className="count-chip">{incomingInvites.length}</span>
                   </div>
-                )}
-              </section>
+                  {incomingInvites.length === 0 ? (
+                    <p className="empty-state">No incoming invites right now.</p>
+                  ) : (
+                    <div className="stack mini-stack">
+                      {incomingInvites.map((invite) => {
+                        const friend = profilesById.get(invite.requester_id);
+
+                        return (
+                          <div className="list-card" key={invite.id}>
+                            <PersonIdentity profile={friend} />
+                            <div className="row-actions">
+                              <button
+                                className="primary-button"
+                                onClick={() => respondToInvite(invite.id, true)}
+                                disabled={mutating}
+                              >
+                                Accept
+                              </button>
+                              <button
+                                className="ghost-button"
+                                onClick={() => respondToInvite(invite.id, false)}
+                                disabled={mutating}
+                              >
+                                Decline
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+
+                <section className="subpanel">
+                  <div className="subpanel-head">
+                    <h3>Outgoing invites</h3>
+                    <span className="count-chip">{outgoingInvites.length}</span>
+                  </div>
+                  {outgoingInvites.length === 0 ? (
+                    <p className="empty-state">No pending invites sent.</p>
+                  ) : (
+                    <div className="stack mini-stack">
+                      {outgoingInvites.map((invite) => {
+                        const friend = profilesById.get(invite.addressee_id);
+
+                        return (
+                          <div className="list-card" key={invite.id}>
+                            <PersonIdentity profile={friend} />
+                            <span className="pill">Waiting</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+              </div>
             </div>
-          </div>
-        </article>
+          </article>
+        </div>
 
         <article className="panel panel-money">
           <div className="section-head">
             <div>
               <h2>Money actions</h2>
               <p className="muted">
-                {moneyTab === "debt"
-                  ? "Log a debt and let your friend approve it."
-                  : "Record a payment you made directly outside the app."}
+                Open a focused flow for either creating a debt or recording a direct
+                settlement.
               </p>
             </div>
           </div>
 
-          <div className="tab-row" role="tablist" aria-label="Money actions">
+          <div className="action-option-grid">
             <button
-              aria-selected={moneyTab === "debt"}
-              className={`tab-button ${moneyTab === "debt" ? "tab-button-active" : ""}`}
-              onClick={() => setMoneyTab("debt")}
-              role="tab"
+              className="action-option-card"
+              onClick={() => setIsDebtDialogOpen(true)}
               type="button"
             >
-              Create debt
+              <span className="profile-label">Approval flow</span>
+              <strong>Create debt</strong>
+              <p>
+                Log a shared expense or cash loan. Your friend approves it from their side.
+              </p>
             </button>
+
             <button
-              aria-selected={moneyTab === "settlement"}
-              className={`tab-button ${
-                moneyTab === "settlement" ? "tab-button-active" : ""
-              }`}
-              onClick={() => setMoneyTab("settlement")}
-              role="tab"
+              className="action-option-card"
+              onClick={() => setIsSettlementDialogOpen(true)}
               type="button"
             >
-              Record settlement
+              <span className="profile-label">Direct payment</span>
+              <strong>Record settlement</strong>
+              <p>
+                Note a payment already made outside the app so balances stay accurate.
+              </p>
             </button>
           </div>
 
-          {moneyTab === "debt" ? (
-            <div className="money-pane">
+          <div className="hint-banner">
+            These actions now open in dialogs so the dashboard stays stable even as your
+            friend list, activity, and approvals grow.
+          </div>
+        </article>
+      </section>
+
+      <section className="panel inbox-panel">
+        <div className="section-head">
+          <div>
+            <h2>Pending approvals</h2>
+            <p className="muted">These requests need your decision.</p>
+          </div>
+          <span className="count-chip count-chip-strong">{pendingApprovals.length}</span>
+        </div>
+
+        {pendingApprovals.length === 0 ? (
+          <p className="empty-state">No debt approvals waiting for you.</p>
+        ) : (
+          <div className="panel-scroll panel-scroll-approvals">
+            <div className="stack mini-stack">
+              {pendingApprovals.map((request) => {
+                const creator = profilesById.get(request.creator_id);
+
+                return (
+                  <div className="list-card dense" key={request.id}>
+                    <div>
+                      <PersonIdentity profile={creator} />
+                      <p>
+                        {formatCurrency(request.amount_in_paise)} for {request.reason}
+                      </p>
+                      <small>
+                        Debt date {dateOnly.format(new Date(request.debt_date))} - Due{" "}
+                        {formatDate(request.due_at)}
+                      </small>
+                    </div>
+                    <div className="row-actions">
+                      <button
+                        className="primary-button"
+                        onClick={() => respondToDebt(request.id, true)}
+                        disabled={mutating}
+                      >
+                        Approve
+                      </button>
+                      <button
+                        className="ghost-button"
+                        onClick={() => respondToDebt(request.id, false)}
+                        disabled={mutating}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {isDebtDialogOpen && (
+        <div
+          className="dialog-backdrop"
+          onClick={() => setIsDebtDialogOpen(false)}
+          role="presentation"
+        >
+          <section
+            className="dialog-card form-dialog"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="dialog-head">
+              <div>
+                <h2>Create debt</h2>
+                <p className="muted">
+                  Log a debt request, then let your friend approve it from their side.
+                </p>
+              </div>
+              <button
+                aria-label="Close create debt dialog"
+                className="ghost-button dialog-close-button"
+                onClick={() => setIsDebtDialogOpen(false)}
+                type="button"
+              >
+                X
+              </button>
+            </div>
+
+            <div className="dialog-body">
               <div className="form-grid compact-grid">
                 <label>
                   <span>Friend</span>
@@ -1567,8 +1671,38 @@ export default function FnbApp() {
                 </p>
               )}
             </div>
-          ) : (
-            <div className="money-pane">
+          </section>
+        </div>
+      )}
+
+      {isSettlementDialogOpen && (
+        <div
+          className="dialog-backdrop"
+          onClick={() => setIsSettlementDialogOpen(false)}
+          role="presentation"
+        >
+          <section
+            className="dialog-card form-dialog"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="dialog-head">
+              <div>
+                <h2>Record settlement</h2>
+                <p className="muted">
+                  Note a payment already made directly outside the app.
+                </p>
+              </div>
+              <button
+                aria-label="Close settlement dialog"
+                className="ghost-button dialog-close-button"
+                onClick={() => setIsSettlementDialogOpen(false)}
+                type="button"
+              >
+                X
+              </button>
+            </div>
+
+            <div className="dialog-body">
               <div className="form-grid compact-grid">
                 <label>
                   <span>Paid to</span>
@@ -1645,62 +1779,9 @@ export default function FnbApp() {
                 </p>
               )}
             </div>
-          )}
-        </article>
-      </section>
-
-      <section className="panel inbox-panel">
-        <div className="section-head">
-          <div>
-            <h2>Pending approvals</h2>
-            <p className="muted">These requests need your decision.</p>
-          </div>
-          <span className="count-chip count-chip-strong">{pendingApprovals.length}</span>
+          </section>
         </div>
-
-        {pendingApprovals.length === 0 ? (
-          <p className="empty-state">No debt approvals waiting for you.</p>
-        ) : (
-          <div className="panel-scroll panel-scroll-approvals">
-            <div className="stack mini-stack">
-              {pendingApprovals.map((request) => {
-                const creator = profilesById.get(request.creator_id);
-
-                return (
-                  <div className="list-card dense" key={request.id}>
-                    <div>
-                      <PersonIdentity profile={creator} />
-                      <p>
-                        {formatCurrency(request.amount_in_paise)} for {request.reason}
-                      </p>
-                      <small>
-                        Debt date {dateOnly.format(new Date(request.debt_date))} - Due{" "}
-                        {formatDate(request.due_at)}
-                      </small>
-                    </div>
-                    <div className="row-actions">
-                      <button
-                        className="primary-button"
-                        onClick={() => respondToDebt(request.id, true)}
-                        disabled={mutating}
-                      >
-                        Approve
-                      </button>
-                      <button
-                        className="ghost-button"
-                        onClick={() => respondToDebt(request.id, false)}
-                        disabled={mutating}
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </section>
+      )}
 
       {isStatementDialogOpen && selectedFriend && (
         <div

@@ -372,6 +372,11 @@ h1 {
   align-items: start;
 }
 
+.dashboard-column {
+  display: grid;
+  gap: 16px;
+}
+
 .identity-lockup,
 .person-identity,
 .statement-header {
@@ -572,40 +577,40 @@ h1 {
   background: rgba(255, 236, 222, 0.84);
 }
 
-.tab-row {
-  display: inline-flex;
-  gap: 8px;
-  width: fit-content;
-  max-width: 100%;
-  padding: 6px;
-  border-radius: 20px;
-  border: 1px solid rgba(31, 26, 20, 0.08);
-  background: rgba(255, 255, 255, 0.58);
-}
-
-.tab-button {
-  border: 0;
-  border-radius: 14px;
-  min-height: 44px;
-  padding: 10px 16px;
-  background: transparent;
-  color: var(--muted);
-  font-weight: 600;
-  transition:
-    background 120ms ease,
-    color 120ms ease,
-    box-shadow 120ms ease;
-}
-
-.tab-button-active {
-  background: var(--text);
-  color: white;
-  box-shadow: 0 12px 24px rgba(31, 26, 20, 0.14);
-}
-
-.money-pane {
+.action-option-grid {
   display: grid;
-  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.action-option-card {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(31, 26, 20, 0.08);
+  background: rgba(255, 255, 255, 0.62);
+  text-align: left;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    transform 120ms ease;
+}
+
+.action-option-card:hover {
+  border-color: rgba(216, 97, 43, 0.22);
+  box-shadow: 0 18px 40px rgba(216, 97, 43, 0.1);
+}
+
+.action-option-card strong {
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.action-option-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
 }
 
 .hint-banner {
@@ -689,7 +694,7 @@ textarea {
   scrollbar-color: rgba(216, 97, 43, 0.4) transparent;
 }
 
-.panel-scroll-friends {
+.panel-scroll-network {
   max-height: 560px;
 }
 
@@ -963,6 +968,16 @@ textarea {
   width: min(900px, 100%);
 }
 
+.form-dialog {
+  width: min(760px, 100%);
+}
+
+.dialog-body {
+  display: grid;
+  gap: 18px;
+  margin-top: 20px;
+}
+
 .dialog-head {
   display: flex;
   align-items: flex-start;
@@ -1030,7 +1045,7 @@ code {
     flex-wrap: wrap;
   }
 
-  .panel-scroll-friends {
+  .panel-scroll-network {
     max-height: 480px;
   }
 
@@ -1086,12 +1101,8 @@ code {
     width: 100%;
   }
 
-  .tab-row {
-    width: 100%;
-  }
-
-  .tab-button {
-    flex: 1 1 0;
+  .action-option-grid {
+    grid-template-columns: 1fr;
   }
 
   .profile-strip-button,
@@ -1115,7 +1126,7 @@ code {
     padding-right: 2px;
   }
 
-  .panel-scroll-friends {
+  .panel-scroll-network {
     max-height: 420px;
   }
 
