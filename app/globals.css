@@ -1108,15 +1108,15 @@ textarea {
 }
 
 .panel-scroll-network {
-  max-height: 560px;
+  height: 580px;
 }
 
 .panel-scroll-approvals {
-  max-height: 320px;
+  max-height: 60vh;
 }
 
 .panel-scroll-activity {
-  max-height: 420px;
+  height: 686px;
 }
 
 .panel-scroll::-webkit-scrollbar {
@@ -1585,7 +1585,13 @@ code {
   }
 
   .panel-scroll-network {
+    height: auto;
     max-height: 480px;
+  }
+
+  .panel-scroll-activity {
+    height: auto;
+    max-height: 420px;
   }
 
   .panel-scroll-approvals {

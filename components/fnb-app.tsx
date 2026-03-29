@@ -148,6 +148,8 @@ export default function FnbApp() {
   const [usernameDraft, setUsernameDraft] = useState("");
   const [upiIdDraft, setUpiIdDraft] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isInviteFormOpen, setIsInviteFormOpen] = useState(false);
+  const [isApprovalsDialogOpen, setIsApprovalsDialogOpen] = useState(false);
   const [inviteUsername, setInviteUsername] = useState("");
   const [debtForm, setDebtForm] = useState({
     friendId: "",
@@ -1427,7 +1429,11 @@ export default function FnbApp() {
           <span>You owe</span>
           <strong>{formatCurrency(totalYouOwe)}</strong>
         </article>
-        <article className="stat-card">
+        <article 
+          className="stat-card" 
+          onClick={() => setIsApprovalsDialogOpen(true)}
+          style={{ cursor: 'pointer' }}
+        >
           <span>Pending approvals</span>
           <strong>{pendingApprovals.length + pendingSettlements.length}</strong>
         </article>
@@ -1435,35 +1441,6 @@ export default function FnbApp() {
 
       <section className="dashboard-grid">
         <div className="dashboard-column">
-          <article className="panel">
-            <div className="section-head">
-              <div>
-                <h2>Invite friend</h2>
-                <p className="muted">
-                  Invite friends by their F&B username. Yours is @
-                  {dashboard.profile?.username ?? "not-set"}.
-                </p>
-              </div>
-            </div>
-
-            <div className="form-grid compact-grid">
-              <label className="field-no-label">
-                <input
-                  aria-label="Invite by username"
-                  value={inviteUsername}
-                  onChange={(event) => setInviteUsername(event.target.value)}
-                  placeholder="friend_username"
-                />
-              </label>
-            </div>
-
-            <div className="action-row">
-              <button className="primary-button" onClick={sendInvite} disabled={mutating}>
-                Send invite
-              </button>
-            </div>
-          </article>
-
           <article className="panel panel-network">
             <div className="section-head">
               <div>
@@ -1478,9 +1455,45 @@ export default function FnbApp() {
               <div className="section-stack">
                 <section className="subpanel">
                   <div className="subpanel-head">
-                    <h3>Your friends</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <h3>Your friends</h3>
+                      <button 
+                        className="ghost-button" 
+                        onClick={() => setIsInviteFormOpen(!isInviteFormOpen)}
+                        style={{ padding: '4px', minHeight: '32px', minWidth: '32px', fontSize: '1.2rem' }}
+                        title="Invite a new friend"
+                      >
+                        {isInviteFormOpen ? "−" : "+"}
+                      </button>
+                    </div>
                     <span className="count-chip">{balances.length}</span>
                   </div>
+
+                  {/* Inline Invite Form */}
+                  {isInviteFormOpen && (
+                    <div className="subpanel-invite-inline" style={{ padding: '0 0 16px', borderBottom: '1px solid var(--line)', marginBottom: '16px' }}>
+                      <p className="muted" style={{ fontSize: '0.85rem', marginBottom: '8px' }}>
+                        Invite by username:
+                      </p>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <input
+                          aria-label="Invite by username"
+                          value={inviteUsername}
+                          onChange={(event) => setInviteUsername(event.target.value)}
+                          placeholder="friend_username"
+                          style={{ minHeight: '42px', padding: '8px 12px' }}
+                        />
+                        <button 
+                          className="primary-button" 
+                          onClick={sendInvite} 
+                          disabled={mutating}
+                          style={{ minHeight: '42px', whiteSpace: 'nowrap' }}
+                        >
+                          Send
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   {balances.length === 0 ? (
                     <p className="empty-state">No accepted friends yet.</p>
                   ) : (
@@ -1522,33 +1535,54 @@ export default function FnbApp() {
                   {incomingInvites.length === 0 ? (
                     <p className="empty-state">No incoming invites right now.</p>
                   ) : (
-                    <div className="stack mini-stack">
-                      {incomingInvites.map((invite) => {
-                        const friend = profilesById.get(invite.requester_id);
+                    <>
+                      {/* Featured (Latest) Invite */}
+                      <div className="list-card" key={incomingInvites[0].id}>
+                        <PersonIdentity profile={profilesById.get(incomingInvites[0].requester_id)} />
+                        <div className="row-actions">
+                          <button
+                            className="primary-button"
+                            onClick={() => respondToInvite(incomingInvites[0].id, true)}
+                            disabled={mutating}
+                          >
+                            Accept
+                          </button>
+                          <button
+                            className="ghost-button"
+                            onClick={() => respondToInvite(incomingInvites[0].id, false)}
+                            disabled={mutating}
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      </div>
 
-                        return (
-                          <div className="list-card" key={invite.id}>
-                            <PersonIdentity profile={friend} />
-                            <div className="row-actions">
-                              <button
-                                className="primary-button"
-                                onClick={() => respondToInvite(invite.id, true)}
-                                disabled={mutating}
-                              >
-                                Accept
-                              </button>
-                              <button
-                                className="ghost-button"
-                                onClick={() => respondToInvite(invite.id, false)}
-                                disabled={mutating}
-                              >
-                                Decline
-                              </button>
-                            </div>
+                      {/* The rest in a scroll area */}
+                      {incomingInvites.length > 1 && (
+                        <div className="panel-scroll" style={{ maxHeight: "200px", marginTop: "12px", borderTop: "1px dashed var(--line)", paddingTop: "12px" }}>
+                          <div className="stack mini-stack">
+                            {incomingInvites.slice(1).map((invite) => {
+                              const friend = profilesById.get(invite.requester_id);
+                              return (
+                                <div className="list-card dense" key={invite.id} style={{ opacity: 0.8 }}>
+                                  <PersonIdentity profile={friend} />
+                                  <div className="row-actions">
+                                    <button
+                                      className="primary-button"
+                                      onClick={() => respondToInvite(invite.id, true)}
+                                      disabled={mutating}
+                                      style={{ padding: "4px 10px", minHeight: "32px", fontSize: "0.85rem" }}
+                                    >
+                                      Accept
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
-                        );
-                      })}
-                    </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </section>
 
@@ -1560,18 +1594,30 @@ export default function FnbApp() {
                   {outgoingInvites.length === 0 ? (
                     <p className="empty-state">No pending invites sent.</p>
                   ) : (
-                    <div className="stack mini-stack">
-                      {outgoingInvites.map((invite) => {
-                        const friend = profilesById.get(invite.addressee_id);
+                    <>
+                      {/* Featured (Latest) Outgoing Invite */}
+                      <div className="list-card" key={outgoingInvites[0].id}>
+                        <PersonIdentity profile={profilesById.get(outgoingInvites[0].addressee_id)} />
+                        <span className="pill">Waiting</span>
+                      </div>
 
-                        return (
-                          <div className="list-card" key={invite.id}>
-                            <PersonIdentity profile={friend} />
-                            <span className="pill">Waiting</span>
+                      {/* The rest in a scroll area */}
+                      {outgoingInvites.length > 1 && (
+                        <div className="panel-scroll" style={{ maxHeight: "150px", marginTop: "12px", borderTop: "1px dashed var(--line)", paddingTop: "12px" }}>
+                          <div className="stack mini-stack">
+                            {outgoingInvites.slice(1).map((invite) => {
+                              const friend = profilesById.get(invite.addressee_id);
+                              return (
+                                <div className="list-card dense" key={invite.id} style={{ opacity: 0.8 }}>
+                                  <PersonIdentity profile={friend} />
+                                  <span className="pill" style={{ fontSize: "0.75rem" }}>Sent</span>
+                                </div>
+                              );
+                            })}
                           </div>
-                        );
-                      })}
-                    </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </section>
               </div>
@@ -1618,93 +1664,6 @@ export default function FnbApp() {
               </button>
             </div>
           </article>
-
-          <section className="panel inbox-panel">
-            <div className="section-head">
-              <div>
-                <h2>Pending approvals</h2>
-                <p className="muted">These requests need your decision.</p>
-              </div>
-              <span className="count-chip count-chip-strong">{pendingApprovals.length + pendingSettlements.length}</span>
-            </div>
-
-            {pendingApprovals.length === 0 && pendingSettlements.length === 0 ? (
-              <p className="empty-state">No debt approvals waiting for you.</p>
-            ) : (
-              <div className="panel-scroll panel-scroll-approvals">
-                <div className="stack mini-stack">
-                  {pendingApprovals.map((request) => {
-                    const creator = profilesById.get(request.creator_id);
-
-                    return (
-                      <div className="list-card dense" key={request.id}>
-                        <div>
-                          <PersonIdentity profile={creator} />
-                          <p>
-                            {formatCurrency(request.amount_in_paise)} for {request.reason}
-                          </p>
-                          <small>
-                            Debt date {dateOnly.format(new Date(request.debt_date))} - Due{" "}
-                            {formatDate(request.due_at)}
-                          </small>
-                        </div>
-                        <div className="row-actions">
-                          <button
-                            className="primary-button"
-                            onClick={() => respondToDebt(request.id, true)}
-                            disabled={mutating}
-                          >
-                            Approve
-                          </button>
-                          <button
-                            className="ghost-button"
-                            onClick={() => respondToDebt(request.id, false)}
-                            disabled={mutating}
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {pendingSettlements.map((settlement) => {
-                    const payer = profilesById.get(settlement.payer_id);
-
-                    return (
-                      <div className="list-card dense" key={settlement.id}>
-                        <div>
-                          <PersonIdentity profile={payer} />
-                          <p>
-                            {formatCurrency(settlement.amount_in_paise)} payment
-                          </p>
-                          <small>
-                            {settlement.note ? `Note: ${settlement.note}` : "No note provided"}
-                          </small>
-                        </div>
-                        <div className="row-actions">
-                          <button
-                            className="primary-button"
-                            onClick={() => respondToSettlement(settlement.id, true)}
-                            disabled={mutating}
-                          >
-                            Approve
-                          </button>
-                          <button
-                            className="ghost-button"
-                            onClick={() => respondToSettlement(settlement.id, false)}
-                            disabled={mutating}
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </section>
 
           <section className="panel activity-panel">
             <div className="section-head">
@@ -2134,6 +2093,80 @@ export default function FnbApp() {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
+
+      {isApprovalsDialogOpen && (
+        <div 
+          className="dialog-backdrop" 
+          onClick={() => setIsApprovalsDialogOpen(false)}
+          role="presentation"
+        >
+          <section
+            className="dialog-card form-dialog"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="dialog-head">
+               <h2>Pending approvals</h2>
+               <button 
+                className="ghost-button dialog-close-button"
+                onClick={() => setIsApprovalsDialogOpen(false)}
+               >
+                 X
+               </button>
+            </div>
+
+            {(error || feedback) && (
+              <div className={`dialog-banner ${error ? "error-banner" : "success-banner"}`} style={{ borderRadius: '12px', padding: '12px 16px', marginBottom: '20px', fontSize: '0.9rem' }}>
+                {error ?? feedback}
+              </div>
+            )}
+
+            <div className="dialog-body">
+              <p className="muted" style={{ marginBottom: "16px" }}>These requests need your decision.</p>
+              
+              {pendingApprovals.length === 0 && pendingSettlements.length === 0 ? (
+                <p className="empty-state">No debt approvals waiting for you.</p>
+              ) : (
+                <div className="panel-scroll" style={{ maxHeight: "60vh" }}>
+                  <div className="stack mini-stack">
+                    {pendingApprovals.map((request) => {
+                      const creator = profilesById.get(request.creator_id);
+                      return (
+                        <div className="list-card dense" key={request.id}>
+                          <div>
+                            <PersonIdentity profile={creator} />
+                            <p>{formatCurrency(request.amount_in_paise)} for {request.reason}</p>
+                            <small>Debt date {dateOnly.format(new Date(request.debt_date))} - Due {formatDate(request.due_at)}</small>
+                          </div>
+                          <div className="row-actions">
+                            <button className="primary-button" onClick={() => respondToDebt(request.id, true)} disabled={mutating}>Approve</button>
+                            <button className="ghost-button" onClick={() => respondToDebt(request.id, false)} disabled={mutating}>Reject</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {pendingSettlements.map((settlement) => {
+                      const payer = profilesById.get(settlement.payer_id);
+                      return (
+                        <div className="list-card dense" key={settlement.id}>
+                          <div>
+                            <PersonIdentity profile={payer} />
+                            <p>{formatCurrency(settlement.amount_in_paise)} payment</p>
+                            <small>{settlement.note || "No note"}</small>
+                          </div>
+                          <div className="row-actions">
+                            <button className="primary-button" onClick={() => respondToSettlement(settlement.id, true)} disabled={mutating}>Approve</button>
+                            <button className="ghost-button" onClick={() => respondToSettlement(settlement.id, false)} disabled={mutating}>Reject</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
