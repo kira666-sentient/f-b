@@ -1,0 +1,468 @@
+/* --- Landing Layered Snapshot --- */
+.landing-preview-layered-snapshot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Desktop: Precise diagonal cascade */
+@media (min-width: 641px) {
+  .landing-preview-layered-snapshot {
+    min-height: 720px;
+    display: block;
+    margin-right: -40px;
+  }
+
+  .layered-card {
+    position: absolute;
+  }
+
+  .dominant-card {
+    top: 80px;
+    left: -40px;
+    /* Pushed further left to avoid Neha overlap */
+    width: 340px;
+    z-index: 5;
+    animation: float-y 6s ease-in-out infinite, entrance-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+
+  .balance-card {
+    top: 280px;
+    right: 10px;
+    width: 320px;
+    z-index: 10;
+    /* Brought forward to the front of the stack */
+    animation: float-y-reverse 7s ease-in-out infinite 0.2s, entrance-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s forwards;
+    opacity: 0;
+  }
+
+  .activity-card {
+    top: 420px;
+    left: -20px;
+    width: 320px;
+    z-index: 2;
+    animation: float-y 6.5s ease-in-out infinite 0.4s, entrance-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s forwards;
+    opacity: 0;
+  }
+
+  .invite-card {
+    top: 520px;
+    /* Moved beneath settled-card vertically */
+    right: -20px;
+    width: 290px;
+    z-index: 3;
+    /* Kept behind settled-card in the stack */
+    animation: float-y 5.5s ease-in-out infinite 0.5s, entrance-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s forwards;
+    opacity: 0;
+  }
+
+  .settled-card {
+    top: 160px;
+    /* Shifted lower to improve cascade flow and avoid top-crowding */
+    right: -40px;
+    width: 300px;
+    z-index: 5;
+    /* Stays on top of invite-card */
+    animation: float-y-reverse 6s ease-in-out infinite 0.6s, entrance-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.4s forwards;
+    opacity: 0;
+  }
+}
+
+.layered-card {
+  padding: 24px;
+  border-radius: 24px;
+  /* Restored: Original 45% white gradient for the rich milky look */
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.35) 100%) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+/* NO hover effects on cards */
+
+.layered-card strong {
+  color: var(--text);
+  font-size: 1.15rem;
+}
+
+.layered-card .label {
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  margin-bottom: 10px;
+  opacity: 0.8;
+}
+
+/*- [x] Fix horizontal alignment within carousel cards
+- [x] Reduce hero section padding/gaps to move carousel "above the fold"
+- [x] Optimize font-sizes and spacing for tighter mobile layout
+- [x] Final visual polish and audit */
+
+/* App-accurate styling for preview cards */
+.landing-preview-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.landing-preview-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft);
+  color: var(--warning);
+  font-weight: 800;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(216, 97, 43, 0.1);
+}
+
+.landing-preview-copy strong {
+  display: block;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.landing-preview-copy span {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.landing-preview-amount-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.landing-preview-decision-cluster {
+  display: flex;
+  gap: 8px;
+}
+
+.landing-btn-preview {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.landing-btn-approve {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.landing-btn-reject {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* --- Clean Feature List --- */
+.landing-inline-features {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.landing-inline-features .dot-separator {
+  width: 4px;
+  height: 4px;
+  background-color: var(--muted);
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+/* --- Story Panels & Feature Grid --- */
+
+.landing-panel {
+  gap: 32px;
+  padding: 40px !important;
+  /* Restored the Perfect Look: Original 15% transparency with rich blur */
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+  border-radius: 36px;
+  contain: content;
+}
+
+.landing-panel h2 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem) !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.04em;
+  margin-bottom: 12px !important;
+}
+
+.landing-panel .eyebrow {
+  margin-bottom: 14px;
+}
+
+.landing-feature-item,
+.landing-check-card {
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.5);
+  /* Slightly boosted opacity to compensate for lack of inner blur */
+}
+
+.landing-feature-step {
+  background: rgba(216, 97, 43, 0.15) !important;
+  border: 1px solid rgba(216, 97, 43, 0.1);
+}
+
+/* Staggered entrance for h1 spans */
+.landing-title span {
+  display: block;
+  opacity: 0;
+  animation: entrance-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.landing-title span:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.landing-title span:nth-child(2) {
+  animation-delay: 0.10s;
+}
+
+.landing-title span:nth-child(3) {
+  animation-delay: 0.15s;
+}
+
+.landing-title span:nth-child(4) {
+  animation-delay: 0.20s;
+}
+
+.landing-title span:nth-child(5) {
+  animation-delay: 0.25s;
+}
+
+.landing-title span:nth-child(6) {
+  animation-delay: 0.30s;
+}
+
+.landing-title span:nth-child(7) {
+  animation-delay: 0.35s;
+}
+
+/* Bear & Waterfall subtle presence */
+@media (max-width: 900px) {
+  .landing-world-side {
+    opacity: 0.28;
+  }
+}
+
+@media (max-width: 640px) {
+  .landing-world-side {
+    opacity: 0.12;
+  }
+}
+
+
+/* FIX: Strip parent .hero styles from .landing-hero to resolve double-glassing / transparency issues */
+.landing-hero {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Hide scrollbar for the App Shell Viewport */
+.landing-scroll-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.landing-scroll-viewport {
+  scrollbar-width: none;
+}
+
+/* =======================================================
+   MOBILE OVERRIDES (Carousel & Compact Layout)
+   Placed at the bottom to win the CSS cascade.
+======================================================= */
+@media (max-width: 640px) {
+  .landing-hero {
+    padding-top: 10px !important;
+    /* Extremely tight for mobile */
+    padding-bottom: 24px !important;
+    gap: 8px !important;
+  }
+
+  .landing-hero-copy {
+    gap: 12px !important;
+  }
+
+  .landing-title {
+    font-size: clamp(2.1rem, 11vw, 2.7rem) !important;
+    line-height: 1.02 !important;
+    letter-spacing: -0.04em !important;
+  }
+
+  .lede {
+    font-size: 0.95rem !important;
+    line-height: 1.5 !important;
+    margin-top: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .landing-preview-layered-snapshot {
+    min-height: auto;
+    width: 100vw;
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    gap: 16px !important;
+    margin-top: 8px !important;
+    /* Tighter against text */
+    margin-left: -20px !important;
+    margin-right: -20px !important;
+    padding: 10px 24px 32px !important;
+    align-items: stretch !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    will-change: scroll-position !important;
+    transform: translateZ(0);
+    /* Hardware accelerate the swipe */
+  }
+
+  .landing-preview-layered-snapshot::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .layered-card {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    flex: 0 0 88% !important;
+    scroll-snap-align: center !important;
+    max-width: 440px !important;
+    transform: none !important;
+    margin-bottom: 0 !important;
+    padding: 24px 20px !important;
+    /* Restored original spacing */
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08) !important;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.35) 100%) !important;
+    backdrop-filter: blur(12px) !important;
+    border-radius: 28px !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    text-align: left !important;
+    /* Removed translateZ/will-change from items to stop the 'jiggle' on snap stop */
+  }
+
+  .dominant-card {
+    order: 1;
+  }
+
+  .balance-card {
+    order: 2;
+  }
+
+  .activity-card {
+    order: 3;
+  }
+
+  .invite-card {
+    order: 4;
+  }
+
+  .settled-card {
+    order: 5;
+  }
+
+  .landing-carousel-mobile {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    gap: 16px !important;
+    margin-left: -20px !important;
+    margin-right: -20px !important;
+    padding: 10px 20px 20px !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+    align-items: stretch !important;
+    transform: translateZ(0);
+    /* Hardware accelerate the swipe */
+    will-change: scroll-position;
+  }
+
+  .landing-carousel-mobile::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .landing-carousel-mobile>* {
+    flex: 0 0 85% !important;
+    scroll-snap-align: center !important;
+    height: auto !important;
+  }
+
+  /* Carousel Indicators */
+  .landing-carousel-tray {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: -12px;
+    margin-bottom: 24px;
+    opacity: 0.9;
+  }
+
+  .carousel-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    opacity: 0.25;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .carousel-dot.active {
+    background: var(--accent);
+    opacity: 1;
+    width: 16px;
+    border-radius: 4px;
+  }
+
+  /* Compact Panels for Mobile - Original Glass Look Restored */
+  .landing-panel {
+    background: rgba(255, 255, 255, 0.15) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    padding: 28px 20px !important;
+    border-radius: 36px !important;
+    gap: 20px !important;
+  }
+
+  .landing-panel h2 {
+    font-size: 1.85rem !important;
+    margin-bottom: 8px !important;
+    letter-spacing: -0.03em !important;
+  }
+
+  .landing-panel-lede {
+    font-size: 0.95rem !important;
+    line-height: 1.5 !important;
+    margin-bottom: 12px !important;
+  }
+
+  .landing-scroll-cue {
+    display: none !important;
+  }
+}

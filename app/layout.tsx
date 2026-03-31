@@ -20,6 +20,13 @@ export const metadata: Metadata = {
   },
 };
 
+/* Critical inline CSS to prevent desktop layout flashing on mobile (FOUC).
+   This is parsed before globals.css loads, so the wrong layout never renders. */
+const criticalCSS = `
+@media (min-width: 641px) { .mobile-only { display: none !important; } }
+@media (max-width: 640px) { .desktop-only { display: none !important; } }
+`;
+
 export default function RootLayout({
   children
 }: Readonly<{
@@ -27,9 +34,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <style dangerouslySetInnerHTML={{ __html: criticalCSS }} />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {children}
       </body>
     </html>
   );
 }
+

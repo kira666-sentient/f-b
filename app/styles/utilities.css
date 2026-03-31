@@ -1,0 +1,86 @@
+
+@keyframes button-ring-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes refresh-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes landing-sway {
+  0%,
+  100% {
+    transform: rotate(-1.2deg) translateY(0);
+  }
+
+  50% {
+    transform: rotate(1.4deg) translateY(4px);
+  }
+}
+
+@keyframes landing-breathe {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(2px) scale(1.02);
+  }
+}
+
+@keyframes landing-leaf-float {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0.88;
+  }
+
+  50% {
+    transform: translate(10px, 26px) rotate(10deg);
+    opacity: 0.54;
+  }
+}
+
+
+
+@keyframes landing-scroll-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+
+  50% {
+    transform: scale(1.32);
+    opacity: 0.55;
+  }
+}
+
+@keyframes entrance-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes float-y-reverse {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
