@@ -3,7 +3,17 @@
 import React from "react";
 import type { Profile, DebtRequest, Settlement, SharedItem, Friendship } from "@/lib/app-types";
 import type { FriendSummary, StatementEntry, DebtFormState, SettlementFormState, ItemFormState, ActivityItem } from "@/lib/types";
-import { formatCurrency, formatDate, formatDateTime, formatDateOnly, readableProfile } from "@/lib/helpers";
+import {
+  canApproveSharedItem,
+  formatCurrency,
+  formatDate,
+  formatDateTime,
+  formatDateOnly,
+  getSharedItemCounterpartyId,
+  getSharedItemRequesterId,
+  isSharedItemBorrower,
+  readableProfile
+} from "@/lib/helpers";
 import { Avatar, PersonIdentity, FriendPicker, ChevronDownIcon } from "./ui";
 
 const DialogBanner = ({ error, feedback }: { error: string | null; feedback: string | null }) => {
@@ -372,7 +382,7 @@ export function ApprovalsDialog(props: ApprovalsDialogProps) {
                   </div>
                 ))}
                 {pendingItems.map((item) => {
-                  const actor = profilesById.get(item.owner_id);
+                  const actor = profilesById.get(getSharedItemRequesterId(item));
                   const isReturn = item.status === "pending_return";
                   const message = isReturn
                     ? `${readableProfile(actor)} wants to confirm "${item.item_name}" was returned.`
@@ -480,9 +490,13 @@ export function FriendsOverviewDialog(props: FriendsOverviewDialogProps) {
               ) : (
                 <div className="stack mini-stack">
                   {incomingInvites.map((invite) => (
-                    <div className="list-card dense summary-list-card" key={invite.id}>
-                      <div className="person-block">
-                        <PersonIdentity profile={profilesById.get(invite.requester_id)} />
+                    <div className="list-card dense summary-list-card invite-summary-card" key={invite.id}>
+                      <div className="invite-summary-identity">
+                        <Avatar profile={profilesById.get(invite.requester_id)} size="medium" />
+                        <div className="invite-summary-copy">
+                          <strong>{readableProfile(profilesById.get(invite.requester_id))}</strong>
+                          <p>@{profilesById.get(invite.requester_id)?.username ?? "unknown"}</p>
+                        </div>
                       </div>
                       <div className="row-actions summary-card-actions">
                         <button className="primary-button compact-action-button" disabled={mutating} onClick={() => onRespondInvite(invite.id, true)} type="button">Accept</button>
@@ -506,9 +520,13 @@ export function FriendsOverviewDialog(props: FriendsOverviewDialogProps) {
               ) : (
                 <div className="stack mini-stack">
                   {outgoingInvites.map((invite) => (
-                    <div className="list-card dense summary-list-card" key={invite.id}>
-                      <div className="person-block">
-                        <PersonIdentity profile={profilesById.get(invite.addressee_id)} />
+                    <div className="list-card dense summary-list-card invite-summary-card" key={invite.id}>
+                      <div className="invite-summary-identity">
+                        <Avatar profile={profilesById.get(invite.addressee_id)} size="medium" />
+                        <div className="invite-summary-copy">
+                          <strong>{readableProfile(profilesById.get(invite.addressee_id))}</strong>
+                          <p>@{profilesById.get(invite.addressee_id)?.username ?? "unknown"}</p>
+                        </div>
                       </div>
                       <div className="row-actions summary-card-actions">
                         <span className="pill pill-small">Waiting</span>
@@ -600,7 +618,7 @@ export function FullItemsDialog(props: FullItemsDialogProps) {
   const { isOpen, onClose, sharedItems, profiles, userId, onCancelItem, onRequestReturn, onOpenApprovals } = props;
   if (!isOpen) return null;
 
-  const pendingItemsCount = sharedItems.filter((item) => (item.status === "pending" && item.friend_id === userId) || (item.status === "pending_return" && item.owner_id === userId)).length;
+  const pendingItemsCount = sharedItems.filter((item) => canApproveSharedItem(item, userId)).length;
 
   return (
     <div className="dialog-backdrop" onClick={onClose} role="presentation">
@@ -630,37 +648,36 @@ export function FullItemsDialog(props: FullItemsDialogProps) {
                 <p className="empty-state">No shared items right now.</p>
               </div>
             ) : (
-              <div className="stack">
-                {sharedItems.map((item) => (
-                  <div className="list-card item-full-card" key={item.id}>
-                    <div className="item-full-copy">
-                      <div className="item-row-header">
-                        <strong>{item.item_name}</strong>
-                        <span className={`pill status-${item.status}`}>{item.status.replace("_", " ")}</span>
+                <div className="stack">
+                  {sharedItems.map((item) => (
+                    <div className="list-card item-full-card" key={item.id}>
+                      <div className="item-full-copy">
+                        <div className="item-row-header">
+                          <strong>{item.item_name}</strong>
+                          <span className={`pill status-${item.status}`}>{item.status.replace("_", " ")}</span>
+                        </div>
+                        <p className="muted item-row-copy">
+                          {isSharedItemBorrower(item, userId) ? "Borrowed from" : "Lent to"} {profiles.find((p) => p.id === getSharedItemCounterpartyId(item, userId))?.full_name || "friend"}
+                        </p>
+                        <small className="muted">Created {new Date(item.created_at).toLocaleDateString()}</small>
                       </div>
-                      <p className="muted item-row-copy">
-                        <span className="profile-label profile-label-inline">{item.type.toUpperCase()}</span>
-                        {item.type === "gave" ? "to" : "from"} {profiles.find((p) => p.id === (item.type === "gave" ? item.friend_id : item.owner_id))?.full_name || "friend"}
-                      </p>
-                      <small className="muted">Created {new Date(item.created_at).toLocaleDateString()}</small>
-                    </div>
 
-                    <div className="row-actions item-full-actions">
+                      <div className="row-actions item-full-actions">
                       {item.status === "pending" && item.owner_id === userId ? (
                         <button className="ghost-button danger-ghost-button compact-action-button" onClick={() => onCancelItem(item.id)} type="button">Cancel request</button>
                       ) : null}
 
                       {item.status === "active" ? (
-                        ((item.type === "gave" && item.friend_id === userId) || (item.type === "borrowed" && item.owner_id === userId)) ? (
+                        isSharedItemBorrower(item, userId) ? (
                           <button className="primary-button compact-action-button" onClick={(e) => onRequestReturn(item.id, e)} type="button">Mark as returned</button>
                         ) : (
                           <div className="item-status-note">In use</div>
                         )
                       ) : null}
 
-                      {item.status === "pending_return" ? <span className="pill status-pending">Being returned...</span> : null}
+                      {item.status === "pending_return" && !canApproveSharedItem(item, userId) ? <span className="pill status-pending">Being returned...</span> : null}
 
-                      {((item.status === "pending" && item.friend_id === userId) || (item.status === "pending_return" && item.owner_id === userId)) ? (
+                      {canApproveSharedItem(item, userId) ? (
                         <button className="primary-button compact-action-button" onClick={onOpenApprovals} type="button">Go to Approvals</button>
                       ) : null}
                     </div>

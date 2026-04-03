@@ -80,8 +80,26 @@ textarea {
   font: inherit;
 }
 
+a,
+button,
+input,
+select,
+textarea,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
 button {
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+[role="button"]:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .shell {
@@ -113,9 +131,11 @@ button {
   transition: transform 0.2s ease, background 0.2s ease;
 }
 
-.help-icon-button:hover {
-  background: white;
-  transform: scale(1.05);
+@media (hover: hover) {
+  .help-icon-button:hover {
+    background: white;
+    transform: scale(1.05);
+  }
 }
 
 .hero {
@@ -722,10 +742,23 @@ h1 {
   mask-composite: exclude;
 }
 
-.primary-button:hover::before,
-.ghost-button:hover::before {
-  opacity: 1;
-  animation: button-ring-spin 1.2s linear infinite;
+@media (hover: hover) and (pointer: fine) {
+  .primary-button:hover::before,
+  .ghost-button:hover::before {
+    opacity: 1;
+    animation: button-ring-spin 1.2s linear infinite;
+  }
+}
+
+/* Touch-device active feedback */
+.primary-button:active {
+  opacity: 0.85;
+  transform: scale(0.97);
+}
+
+.ghost-button:active {
+  background: rgba(235, 230, 222, 0.8);
+  transform: scale(0.97);
 }
 
 .primary-button {

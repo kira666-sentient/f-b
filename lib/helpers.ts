@@ -1,4 +1,4 @@
-import type { Profile } from "./app-types";
+import type { Profile, SharedItem } from "./app-types";
 import type { User } from "@supabase/supabase-js";
 
 const money = new Intl.NumberFormat("en-IN", {
@@ -65,4 +65,30 @@ export function getErrorMessage(cause: unknown) {
   if (typeof cause === "string") return cause;
   if (cause instanceof Error) return cause.message;
   return "Something went wrong. Please try again.";
+}
+
+export function getSharedItemBorrowerId(item: SharedItem) {
+  return item.type === "gave" ? item.friend_id : item.owner_id;
+}
+
+export function getSharedItemPhysicalOwnerId(item: SharedItem) {
+  return item.type === "gave" ? item.owner_id : item.friend_id;
+}
+
+export function getSharedItemRequesterId(item: SharedItem) {
+  return item.status === "pending_return" ? getSharedItemBorrowerId(item) : item.owner_id;
+}
+
+export function getSharedItemCounterpartyId(item: SharedItem, userId: string) {
+  return item.owner_id === userId ? item.friend_id : item.owner_id;
+}
+
+export function isSharedItemBorrower(item: SharedItem, userId: string) {
+  return getSharedItemBorrowerId(item) === userId;
+}
+
+export function canApproveSharedItem(item: SharedItem, userId: string) {
+  if (item.status === "pending") return item.friend_id === userId;
+  if (item.status === "pending_return") return getSharedItemPhysicalOwnerId(item) === userId;
+  return false;
 }

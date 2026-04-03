@@ -133,10 +133,10 @@
     cursor: pointer;
     box-shadow: 0 8px 16px rgba(0,0,0,0.06);
     border-radius: 50%;
-    transition: transform 0.2s ease;
     border: 0;
     background: transparent;
     padding: 0;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .list-card p,
@@ -145,13 +145,7 @@
   word-break: break-word;
 }
 
-.brand-logo {
-  transition: transform 0.3s ease;
-}
-
-.brand-logo:hover {
-  transform: scale(1.05);
-}
+/* hover removed to prevent mobile flash tap */
 
   .mobile-welcome-avatar:active {
     transform: scale(0.94);
@@ -179,7 +173,6 @@
     box-shadow: 0 10px 24px rgba(73, 45, 28, 0.06);
     text-align: left;
     cursor: pointer;
-    transition: transform 120ms ease, box-shadow 120ms ease;
     -webkit-tap-highlight-color: transparent;
     height: 120px;
     overflow: hidden;
@@ -196,7 +189,7 @@
     justify-content: center;
     min-width: 44px;
     min-height: 44px;
-    font-size: 0.82rem;
+    font-size: 1.8rem;
     font-weight: 800;
     letter-spacing: 0.08em;
     line-height: 1;
@@ -207,7 +200,7 @@
   }
 
   .mobile-nav-card .nav-card-label {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     font-weight: 700;
     color: var(--text);
   }
@@ -216,11 +209,11 @@
     position: absolute;
     top: 14px;
     right: 14px;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 700;
     color: var(--accent);
     background: var(--accent-soft);
-    padding: 4px 10px;
+    padding: 2px 10px;
     border-radius: 99px;
   }
 
@@ -232,32 +225,127 @@
     justify-content: flex-start;
     gap: 16px;
   }
+
   .mobile-nav-card.items-card .nav-card-label {
     font-size: 1.1rem;
   }
 
-  .mobile-nav-card:active {
-    transform: scale(0.97);
+  .mobile-home-shell {
+    display: grid;
+    gap: 14px;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   }
 
-  .mobile-nav-card .nav-card-icon {
-    font-size: 1.8rem;
+  .mobile-balance-strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 0 20px;
+  }
+
+  .mobile-balance-card {
+    display: grid;
+    gap: 6px;
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .mobile-balance-card span {
+    font-size: 0.76rem;
+    color: var(--muted);
+  }
+
+  .mobile-balance-card strong {
+    font-size: 1.2rem;
+    line-height: 1.1;
+  }
+
+  .mobile-balance-positive {
+    background: linear-gradient(180deg, #f4fff9 0%, #ddf8ea 100%);
+  }
+
+  .mobile-balance-negative {
+    background: linear-gradient(180deg, #fff9f4 0%, #ffe6d5 100%);
+  }
+
+  .mobile-weather-card {
+    margin: 0 20px;
+    padding: 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(31, 26, 20, 0.08);
+    background: rgba(255, 255, 255, 0.68);
+    display: grid;
+    gap: 14px;
+  }
+
+  .mobile-weather-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .mobile-weather-head h3 {
+    margin: 6px 0 0;
+    font-size: 1.2rem;
+  }
+
+  .mobile-weather-source {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  .mobile-weather-main {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .mobile-weather-temp strong {
+    font-size: 2rem;
     line-height: 1;
   }
 
-  .mobile-nav-card .nav-card-label {
-    font-size: 0.88rem;
-    font-weight: 700;
-    color: var(--text);
+  .mobile-weather-temp p {
+    margin: 4px 0 0;
+    color: var(--muted);
   }
 
-  .mobile-nav-card .nav-card-badge {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--accent);
-    background: var(--accent-soft);
-    padding: 2px 10px;
-    border-radius: 99px;
+  .mobile-weather-summary {
+    display: grid;
+    gap: 10px;
+  }
+
+  .mobile-weather-summary span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.78rem;
+  }
+
+  .mobile-weather-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .mobile-weather-stat {
+    display: grid;
+    gap: 2px;
+    padding: 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  .mobile-weather-stat span {
+    font-size: 0.76rem;
+    color: var(--muted);
+  }
+
+  .mobile-weather-updated {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.82rem;
   }
 
   /* --- Mobile Full-Screen Pages --- */
@@ -268,7 +356,7 @@
     background: var(--bg);
     display: flex;
     flex-direction: column;
-    animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .mobile-page-header {
@@ -278,7 +366,7 @@
     gap: 12px;
     padding: calc(14px + env(safe-area-inset-top, 0px)) 20px 16px;
     background: rgba(244, 239, 230, 0.95);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(6px);
     border-bottom: 1px solid var(--line);
     position: sticky;
     top: 0;
@@ -289,11 +377,19 @@
     background: none;
     border: none;
     font-size: 0.95rem;
-    padding: 8px 0;
-    margin: 0;
+    padding: 10px 14px;
+    margin: -10px -14px;
     color: var(--accent);
     font-weight: 700;
     cursor: pointer;
+    min-height: 44px;
+    min-width: 44px;
+    -webkit-tap-highlight-color: transparent;
+    border-radius: 12px;
+  }
+
+  .mobile-back-btn:active {
+    background: rgba(216, 97, 43, 0.08);
   }
 
   .mobile-page-header h2 {
@@ -361,7 +457,7 @@
     inset: 0;
     z-index: 100;
     background: rgba(0,0,0,0.25);
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(2px);
   }
 
   .mobile-sidebar {
@@ -376,7 +472,7 @@
     box-shadow: 12px 0 60px rgba(0,0,0,0.12);
     display: flex;
     flex-direction: column;
-    animation: slideInLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: slideInLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .mobile-sidebar-header {
@@ -440,7 +536,7 @@
     padding: 14px 16px;
     border-radius: 12px;
     font-size: 0.92rem;
-    transition: background 120ms ease;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .mobile-sidebar-nav button:active {
@@ -448,14 +544,14 @@
   }
 
   /* --- Dialogs as full-screen on mobile --- */
-  .dialog-backdrop {
+  html[data-force-mobile="true"] .dialog-backdrop {
     align-items: end;
     padding: 0;
     background: rgba(31, 26, 20, 0.34);
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(4px);
   }
 
-  .dialog-card {
+  html[data-force-mobile="true"] .dialog-card {
     margin: 0;
     width: 100vw;
     min-height: auto;
@@ -464,17 +560,17 @@
     border: 1px solid rgba(255, 255, 255, 0.55);
     box-shadow: 0 -18px 48px rgba(31, 26, 20, 0.16);
     padding: 0;
-    animation: mobileSheetIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: mobileSheetIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
     flex-direction: column;
     overflow: hidden;
   }
 
-  .dialog-head {
+  html[data-force-mobile="true"] .dialog-head {
     position: sticky;
     top: 0;
     background: rgba(244, 239, 230, 0.95);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(6px);
     z-index: 10;
     padding: 16px 20px;
     border-bottom: 1px solid var(--line);
@@ -484,15 +580,15 @@
     align-items: flex-start;
   }
 
-  .dialog-head h2 { font-size: 1.1rem; }
-  .dialog-head p {
+  html[data-force-mobile="true"] .dialog-head h2 { font-size: 1.1rem; }
+  html[data-force-mobile="true"] .dialog-head p {
     display: block;
     margin-top: 6px;
     font-size: 0.88rem;
     line-height: 1.45;
   }
 
-  .dialog-close-button {
+  html[data-force-mobile="true"] .dialog-close-button {
     margin: 0;
     font-weight: 700;
     color: var(--accent);
@@ -502,43 +598,43 @@
     padding: 0;
   }
 
-  .statement-table th,
-  .statement-table td {
+  html[data-force-mobile="true"] .statement-table th,
+  html[data-force-mobile="true"] .statement-table td {
     white-space: normal;
     word-break: break-word;
     padding: 12px 8px;
   }
 
-  .statement-table thead {
+  html[data-force-mobile="true"] .statement-table thead {
     display: none;
   }
 
-  .statement-table tr {
+  html[data-force-mobile="true"] .statement-table tr {
     display: block;
     border-bottom: 2px solid var(--line-soft);
     padding: 12px 0;
   }
 
-  .statement-table td {
+  html[data-force-mobile="true"] .statement-table td {
     display: block;
     border: none;
     padding: 2px 0;
   }
 
-  .statement-table td:first-child {
+  html[data-force-mobile="true"] .statement-table td:first-child {
     font-size: 0.75rem;
     text-transform: uppercase;
     color: var(--muted);
   }
 
-  .statement-table td:nth-child(2) {
+  html[data-force-mobile="true"] .statement-table td:nth-child(2) {
     font-weight: 700;
     font-size: 1rem;
     color: var(--text);
     margin-bottom: 6px;
   }
 
-  .statement-table td:last-child {
+  html[data-force-mobile="true"] .statement-table td:last-child {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -548,83 +644,98 @@
     margin-top: 8px;
   }
 
-  .statement-table td:last-child::before {
+  html[data-force-mobile="true"] .statement-table td:last-child::before {
     content: "Subtotal Balance";
     font-size: 0.7rem;
     color: var(--muted);
     font-weight: 600;
   }
 
-  .dialog-body, .statement-shell, .dialog-profile, .form-grid, .action-row, .dialog-banner {
+  html[data-force-mobile="true"] .dialog-body,
+  html[data-force-mobile="true"] .statement-shell,
+  html[data-force-mobile="true"] .dialog-profile,
+  html[data-force-mobile="true"] .form-grid,
+  html[data-force-mobile="true"] .action-row,
+  html[data-force-mobile="true"] .dialog-banner {
     padding-left: 16px;
     padding-right: 16px;
   }
 
-  .dialog-body {
+  html[data-force-mobile="true"] .dialog-body {
     padding-top: 16px;
     padding-bottom: 24px;
   }
 
-  .dialog-profile {
+  html[data-force-mobile="true"] .dialog-profile {
     padding-top: 16px;
   }
 
-  .action-row {
+  html[data-force-mobile="true"] .action-row {
     padding-bottom: 24px;
   }
 
-  .dialog-split-actions {
+  html[data-force-mobile="true"] .dialog-split-actions {
     grid-template-columns: 1fr;
   }
 
-  .dialog-callout,
-  .item-full-card {
+  html[data-force-mobile="true"] .dialog-callout,
+  html[data-force-mobile="true"] .item-full-card {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .item-full-actions {
+  html[data-force-mobile="true"] .item-full-actions {
     align-items: stretch;
   }
 
-  .statement-shell {
+  html[data-force-mobile="true"] .statement-shell {
     border: none;
     background: transparent;
   }
 
-  .list-card,
-  .friend-card {
+  html[data-force-mobile="true"] .list-card {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .identity-lockup,
-  .person-identity,
-  .statement-header,
-  .picker-value,
-  .picker-option {
+  html[data-force-mobile="true"] .friend-card {
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html[data-force-mobile="true"] .friend-card:active {
+    background: rgba(245, 240, 233, 0.9);
+  }
+
+  html[data-force-mobile="true"] .identity-lockup,
+  html[data-force-mobile="true"] .person-identity,
+  html[data-force-mobile="true"] .statement-header,
+  html[data-force-mobile="true"] .picker-value,
+  html[data-force-mobile="true"] .picker-option {
     align-items: flex-start;
   }
 
-  .action-option-grid {
+  html[data-force-mobile="true"] .action-option-grid {
     grid-template-columns: 1fr;
   }
 
-  .activity-side {
+  html[data-force-mobile="true"] .activity-side {
     justify-items: start;
   }
 
-  .friend-card-side {
+  html[data-force-mobile="true"] .friend-card-side {
     justify-items: start;
   }
 
-  .panel-scroll {
+  html[data-force-mobile="true"] .panel-scroll {
     padding-right: 2px;
   }
 
-  .panel-scroll-network,
-  .panel-scroll-approvals,
-  .panel-scroll-activity {
+  html[data-force-mobile="true"] .panel-scroll-network,
+  html[data-force-mobile="true"] .panel-scroll-approvals,
+  html[data-force-mobile="true"] .panel-scroll-activity {
     height: auto;
     max-height: none;
   }
@@ -684,7 +795,7 @@
     transform: translateY(100%);
   }
   to {
-    transform: translateY(0);
+    transform: none;
   }
 }
 
@@ -693,7 +804,7 @@
     transform: translateX(100%);
   }
   to {
-    transform: translateX(0);
+    transform: none;
   }
 }
 
@@ -702,7 +813,7 @@
     transform: translateX(-100%);
   }
   to {
-    transform: translateX(0);
+    transform: none;
   }
 }
 

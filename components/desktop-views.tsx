@@ -4,7 +4,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { Profile, Friendship, SharedItem } from "@/lib/app-types";
 import type { FriendSummary, ActivityItem } from "@/lib/types";
-import { formatCurrency, formatDateTime } from "@/lib/helpers";
+import {
+  canApproveSharedItem,
+  formatCurrency,
+  formatDateTime,
+  getSharedItemCounterpartyId,
+  isSharedItemBorrower
+} from "@/lib/helpers";
 import { Avatar, PersonIdentity, RefreshIcon } from "./ui";
 
 export type WeatherSceneTone =
@@ -299,31 +305,30 @@ export function DashboardGrid(props: DashboardGridProps) {
                 <div className="stack mini-stack">
                   {sharedItems.map((item) => (
                     <div className="list-card dense item-row-card" key={item.id}>
-                      <div>
+                      <div className="item-row-main">
                         <div className="item-row-header">
                           <strong>{item.item_name}</strong>
-                          <span className={`pill pill-tiny status-${item.status}`}>{item.status}</span>
+                          <span className={`pill pill-tiny status-${item.status}`}>{item.status.replace("_", " ")}</span>
                         </div>
                         <p className="muted item-row-copy">
-                          <span className="profile-label profile-label-inline">{item.type.toUpperCase()}</span>
-                          {item.type === "gave" ? "to" : "from"} {profiles.find((p) => p.id === item.friend_id)?.full_name || "friend"}
+                          {isSharedItemBorrower(item, userId) ? "Borrowed from" : "Lent to"} {profiles.find((p) => p.id === getSharedItemCounterpartyId(item, userId))?.full_name || "friend"}
                         </p>
                       </div>
-                      <div className="row-actions">
+                      <div className="row-actions item-row-actions">
                         {item.status === "pending" && item.owner_id === userId && (
                           <button className="ghost-button danger-ghost-button compact-action-button" onClick={() => onCancelItem(item.id)} type="button">Cancel</button>
                         )}
                         {item.status === "active" && (
-                          ((item.type === "gave" && item.friend_id === userId) || (item.type === "borrowed" && item.owner_id === userId)) ? (
-                            <button className="ghost-button compact-action-button" onClick={(e) => onRequestReturn(item.id, e)} type="button">Mark Returned</button>
+                          isSharedItemBorrower(item, userId) ? (
+                            <button className="ghost-button compact-action-button" onClick={(e) => onRequestReturn(item.id, e)} type="button">Mark returned</button>
                           ) : (
                             <span className="muted caption-text">In use</span>
                           )
                         )}
-                        {item.status === "pending_return" && (
-                          <span className="pill pill-small status-pending">Returning...</span>
+                        {item.status === "pending_return" && !canApproveSharedItem(item, userId) && (
+                          <span className="pill pill-small status-pending">Return pending</span>
                         )}
-                        {((item.status === "pending" && item.friend_id === userId) || (item.status === "pending_return" && item.owner_id === userId)) && (
+                        {canApproveSharedItem(item, userId) && (
                           <div className="approval-redirect">
                             <button className="ghost-button review-link-button" onClick={onOpenApprovals} type="button">Review in Approvals -&gt;</button>
                           </div>

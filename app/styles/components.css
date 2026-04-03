@@ -670,10 +670,17 @@
   transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
-.magic-nav-button:hover {
-  transform: translateY(-1px);
-  border-color: rgba(216, 97, 43, 0.16);
-  box-shadow: 0 12px 24px rgba(73, 45, 28, 0.08);
+@media (hover: hover) {
+  .magic-nav-button:hover {
+    transform: translateY(-1px);
+    border-color: rgba(216, 97, 43, 0.16);
+    box-shadow: 0 12px 24px rgba(73, 45, 28, 0.08);
+  }
+}
+
+.magic-nav-button:active {
+  transform: scale(0.97);
+  background: rgba(255, 248, 238, 0.7);
 }
 
 .magic-nav-button-active {
@@ -875,9 +882,16 @@
     transform 120ms ease;
 }
 
-.action-option-card:hover {
-  border-color: rgba(216, 97, 43, 0.22);
-  box-shadow: 0 18px 40px rgba(216, 97, 43, 0.1);
+@media (hover: hover) {
+  .action-option-card:hover {
+    border-color: rgba(216, 97, 43, 0.22);
+    box-shadow: 0 18px 40px rgba(216, 97, 43, 0.1);
+  }
+}
+
+.action-option-card:active {
+  transform: scale(0.97);
+  background: rgba(248, 244, 238, 0.8);
 }
 
 .action-option-card strong {
@@ -1053,8 +1067,10 @@ textarea {
   min-width: 0;
 }
 
-.list-card:hover {
-  box-shadow: 0 8px 24px rgba(31, 26, 20, 0.08);
+@media (hover: hover) {
+  .list-card:hover {
+    box-shadow: 0 8px 24px rgba(31, 26, 20, 0.08);
+  }
 }
 
 .dense {
@@ -1356,8 +1372,8 @@ textarea {
   padding: 28px;
   border-radius: 28px;
   border: 1px solid rgba(255, 255, 255, 0.45);
-  background: rgba(255, 251, 245, 0.88);
-  backdrop-filter: blur(48px);
+  background: rgba(255, 251, 245, 0.96);
+  backdrop-filter: blur(10px);
   box-shadow:
     0 12px 32px rgba(73, 45, 28, 0.12),
     0 32px 100px rgba(73, 45, 28, 0.18),
@@ -1474,11 +1490,11 @@ textarea {
 
 .dialog-close-button:hover {
   background: rgba(31, 26, 20, 0.05);
-  transform: rotate(90deg);
+
 }
 
 .dialog-close-button:active {
-  transform: scale(0.92) rotate(90deg);
+  transform: scale(0.9);
 }
 
 .dialog-profile {
@@ -1521,6 +1537,32 @@ textarea {
 
 .summary-list-card {
   gap: 16px;
+}
+
+.invite-summary-card {
+  align-items: center;
+}
+
+.invite-summary-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.invite-summary-copy {
+  min-width: 0;
+}
+
+.invite-summary-copy strong {
+  display: block;
+  line-height: 1.2;
+}
+
+.invite-summary-copy p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 .summary-card-actions {
@@ -1578,6 +1620,7 @@ code {
   padding: 0;
   border: 0;
   background: transparent;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .mobile-brand-logo {

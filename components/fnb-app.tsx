@@ -11,7 +11,7 @@ import { formatUsernameCandidate, makeStarterUsername, readableProfile, getError
 
 import FnbLanding from "./fnb-landing";
 import { ProfileDialog, DebtDialog, SettlementDialog, StatementDialog, ApprovalsDialog, AboutDialog, ItemsDialog, FullItemsDialog, RecentActivityDialog, FriendsOverviewDialog } from "./dialogs";
-import { MobileSidebar, MobileHome, MobileNetworkPage, MobileApprovalsPage, MobileMoneyPage, MobileItemsPage, MobileActivityPage } from "./mobile-views";
+import { MobileDashboardV2 } from "./mobile-dashboard-v2";
 import { Topbar, ProfileStrip, StatGrid, DashboardGrid, ActivityPanel, DashboardAmbientBackdrop, DesktopWeatherRail, MagicSectionNav } from "./desktop-views";
 import type { DesktopWeatherData, DesktopNavItem, WeatherSceneTone } from "./desktop-views";
 
@@ -148,53 +148,15 @@ export default function FnbApp() {
   const [isDebtDialogOpen, setIsDebtDialogOpen] = useState(false);
   const [isSettlementDialogOpen, setIsSettlementDialogOpen] = useState(false);
   const [selectedFriendId, setSelectedFriendId] = useState("");
-  const [mobilePage, setMobilePage] = useState<"home" | "network" | "approvals" | "money" | "activity" | "items">("home");
   const [isItemsDialogOpen, setIsItemsDialogOpen] = useState(false);
   const [itemForm, setItemForm] = useState<ItemFormState>({ name: "", type: "gave", friendId: "", date: new Date().toISOString().slice(0, 10) });
   const [isAboutDialogOpen, setIsAboutDialogOpen] = useState(false);
 
-  /* ── Physical Back Button (Fixed for Android) ──────── */
-  const historyPushedRef = useRef(false);
   const profileSectionRef = useRef<HTMLDivElement | null>(null);
   const networkSectionRef = useRef<HTMLElement | null>(null);
   const moneySectionRef = useRef<HTMLElement | null>(null);
   const itemsSectionRef = useRef<HTMLElement | null>(null);
   const activitySectionRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    const isAnyDialogOpen = isSidebarOpen || isInviteFormOpen || isApprovalsDialogOpen || isRecentActivityDialogOpen || isProfileDialogOpen || isStatementDialogOpen || isDebtDialogOpen || isSettlementDialogOpen || isItemsDialogOpen || isAboutDialogOpen || isFullItemsDialogOpen || isFriendsDialogOpen;
-    const isSubPage = mobilePage !== "home";
-    const needsBackHandler = isSubPage || isAnyDialogOpen;
-
-    if (needsBackHandler && !historyPushedRef.current) {
-      window.history.pushState({ fnbModal: true }, "");
-      historyPushedRef.current = true;
-    }
-
-    if (!needsBackHandler && historyPushedRef.current) {
-      historyPushedRef.current = false;
-    }
-
-    const handlePopState = () => {
-      historyPushedRef.current = false;
-      if (isAboutDialogOpen) { setIsAboutDialogOpen(false); return; }
-      if (isFriendsDialogOpen) { setIsFriendsDialogOpen(false); return; }
-      if (isFullItemsDialogOpen) { setIsFullItemsDialogOpen(false); return; }
-      if (isItemsDialogOpen) { setIsItemsDialogOpen(false); return; }
-      if (isRecentActivityDialogOpen) { setIsRecentActivityDialogOpen(false); return; }
-      if (isSettlementDialogOpen) { setIsSettlementDialogOpen(false); return; }
-      if (isDebtDialogOpen) { setIsDebtDialogOpen(false); return; }
-      if (isStatementDialogOpen) { setIsStatementDialogOpen(false); return; }
-      if (isProfileDialogOpen) { setIsProfileDialogOpen(false); return; }
-      if (isApprovalsDialogOpen) { setIsApprovalsDialogOpen(false); return; }
-      if (isInviteFormOpen) { setIsInviteFormOpen(false); return; }
-      if (isSidebarOpen) { setIsSidebarOpen(false); return; }
-      if (mobilePage !== "home") { setMobilePage("home"); return; }
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, [mobilePage, isSidebarOpen, isInviteFormOpen, isApprovalsDialogOpen, isRecentActivityDialogOpen, isProfileDialogOpen, isStatementDialogOpen, isDebtDialogOpen, isSettlementDialogOpen, isItemsDialogOpen, isAboutDialogOpen, isFullItemsDialogOpen, isFriendsDialogOpen]);
 
   useEffect(() => {
     const isOverlayOpen = isSidebarOpen || isApprovalsDialogOpen || isRecentActivityDialogOpen || isProfileDialogOpen || isStatementDialogOpen || isDebtDialogOpen || isSettlementDialogOpen || isItemsDialogOpen || isAboutDialogOpen || isFullItemsDialogOpen || isFriendsDialogOpen;
@@ -770,36 +732,6 @@ export default function FnbApp() {
       <DesktopWeatherRail weather={weatherInfo} />
       <MagicSectionNav items={desktopNavItems} activeId={activeDesktopSection} onNavigate={scrollToDesktopSection} />
 
-      {/* Mobile Sidebar */}
-      <MobileSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} profile={dashboard.profile} totalOwedToYou={totalOwedToYou} totalYouOwe={totalYouOwe} onOpenProfile={openProfileDialog} onRefresh={refreshData} onSignOut={signOut} />
-
-      {/* Mobile Full-Screen Pages */}
-      {mobilePage === "network" && (
-        <MobileNetworkPage balances={balances} inviteUsername={inviteUsername} setInviteUsername={setInviteUsername} onSendInvite={sendInvite} mutating={mutating} incomingInvites={incomingInvites} outgoingInvites={outgoingInvites} profilesById={profilesById} onViewStatement={openStatementDialog} onRespondInvite={respondToInvite} onBack={() => setMobilePage("home")} />
-      )}
-      {mobilePage === "approvals" && (
-        <MobileApprovalsPage 
-          pendingApprovals={pendingApprovals} 
-          pendingSettlements={pendingSettlements} 
-          pendingItems={pendingItems}
-          profilesById={profilesById} 
-          mutating={mutating} 
-          onRespondDebt={respondToDebt} 
-          onRespondSettlement={respondToSettlement} 
-          onRespondItem={respondToItem}
-          onBack={() => setMobilePage("home")} 
-        />
-      )}
-      {mobilePage === "money" && (
-        <MobileMoneyPage onOpenDebt={() => { resetMessages(); setIsDebtDialogOpen(true); }} onOpenSettlement={() => { resetMessages(); setIsSettlementDialogOpen(true); }} onBack={() => setMobilePage("home")} />
-      )}
-      {mobilePage === "items" && (
-        <MobileItemsPage sharedItems={dashboard.sharedItems} profiles={dashboard.profiles} userId={session.user.id} onOpenItemsDialog={() => setIsItemsDialogOpen(true)} onOpenApprovals={() => setMobilePage("approvals")} onCancelItem={cancelItem} onRequestReturn={requestItemReturn} onBack={() => setMobilePage("home")} />
-      )}
-      {mobilePage === "activity" && (
-        <MobileActivityPage recentActivity={allRecentActivity} onBack={() => setMobilePage("home")} />
-      )}
-
       <main className="shell app-shell dashboard-shell">
         {/* Topbar */}
         <Topbar onOpenSidebar={() => setIsSidebarOpen(true)} onOpenAbout={() => setIsAboutDialogOpen(true)} />
@@ -821,8 +753,77 @@ export default function FnbApp() {
           onOpenApprovals={() => { resetMessages(); setIsApprovalsDialogOpen(true); }}
         />
 
-        {/* Mobile Home */}
-        <MobileHome profile={dashboard.profile} pendingCount={totalPending} balancesCount={balances.length} recentActivityCount={allRecentActivity.length} sharedItemsCount={dashboard.sharedItems.length} onNavigate={setMobilePage} onOpenSidebar={() => setIsSidebarOpen(true)} />
+        {/* Mobile Dashboard (V2) */}
+        <MobileDashboardV2
+          profile={dashboard.profile}
+          weather={weatherInfo}
+          balances={balances}
+          profilesById={profilesById}
+          incomingInvites={incomingInvites}
+          outgoingInvites={outgoingInvites}
+          pendingApprovals={pendingApprovals}
+          pendingSettlements={pendingSettlements}
+          pendingItems={pendingItems}
+          sharedItems={dashboard.sharedItems}
+          profiles={dashboard.profiles}
+          userId={session.user.id}
+          totalOwedToYou={totalOwedToYou}
+          totalYouOwe={totalYouOwe}
+          pendingCount={totalPending}
+          pendingItemsCount={pendingItems.length}
+          balancesCount={balances.length}
+          recentActivityCount={allRecentActivity.length}
+          sharedItemsCount={dashboard.sharedItems.length}
+          recentActivity={allRecentActivity}
+          isSidebarOpen={isSidebarOpen}
+          onOpenSidebar={() => setIsSidebarOpen(true)}
+          onCloseSidebar={() => setIsSidebarOpen(false)}
+          inviteUsername={inviteUsername}
+          setInviteUsername={setInviteUsername}
+          mutating={mutating}
+          onSendInvite={sendInvite}
+          onRespondInvite={respondToInvite}
+          onViewStatement={openStatementDialog}
+          onRespondDebt={respondToDebt}
+          onRespondSettlement={respondToSettlement}
+          onRespondItem={respondToItem}
+          onOpenDebt={() => {
+            resetMessages();
+            setIsDebtDialogOpen(true);
+          }}
+          onOpenSettlement={() => {
+            resetMessages();
+            setIsSettlementDialogOpen(true);
+          }}
+          onOpenItemsDialog={() => setIsItemsDialogOpen(true)}
+          onCancelItem={cancelItem}
+          onRequestReturn={requestItemReturn}
+          onOpenProfileDialog={openProfileDialog}
+          onRefresh={refreshData}
+          onSignOut={signOut}
+          isInviteFormOpen={isInviteFormOpen}
+          isApprovalsDialogOpen={isApprovalsDialogOpen}
+          isRecentActivityDialogOpen={isRecentActivityDialogOpen}
+          isProfileDialogOpen={isProfileDialogOpen}
+          isStatementDialogOpen={isStatementDialogOpen}
+          isDebtDialogOpen={isDebtDialogOpen}
+          isSettlementDialogOpen={isSettlementDialogOpen}
+          isItemsDialogOpen={isItemsDialogOpen}
+          isAboutDialogOpen={isAboutDialogOpen}
+          isFullItemsDialogOpen={isFullItemsDialogOpen}
+          isFriendsDialogOpen={isFriendsDialogOpen}
+          onCloseInviteForm={() => setIsInviteFormOpen(false)}
+          onCloseApprovalsDialog={() => setIsApprovalsDialogOpen(false)}
+          onCloseRecentActivityDialog={() => setIsRecentActivityDialogOpen(false)}
+          onCloseProfileDialog={() => setIsProfileDialogOpen(false)}
+          onCloseStatementDialog={() => setIsStatementDialogOpen(false)}
+          onCloseDebtDialog={() => setIsDebtDialogOpen(false)}
+          onCloseSettlementDialog={() => setIsSettlementDialogOpen(false)}
+          onCloseItemsDialog={() => setIsItemsDialogOpen(false)}
+          onCloseAboutDialog={() => setIsAboutDialogOpen(false)}
+          onCloseFullItemsDialog={() => setIsFullItemsDialogOpen(false)}
+          onCloseFriendsDialog={() => setIsFriendsDialogOpen(false)}
+        />
 
         {/* Desktop Dashboard Grid */}
         <DashboardGrid
